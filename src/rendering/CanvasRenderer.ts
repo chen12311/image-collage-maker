@@ -1,435 +1,302 @@
 /**
- * CanvasRenderer - 核心Canvas渲染器
+ * Canvas渲染器
  * 
- * Linus哲学体现：
- * - 一个函数做一件事：遍历Element数组并绘制
- * - 消除特殊情况：图片和文字使用统一的渲染流程
- * - 直接而简单：没有过度抽象，代码即文档
- * 
- * "Talk is cheap. Show me the code."
+ * 基于demo的renderCanvas函数，实现完整的Canvas渲染逻辑
  */
 
-import type { Element } from '../core/models/Element'
-import type { GridConfig } from '../core/models/GridConfig'
-import { GridSystem } from '../layout/GridSystem'
-import { ElementUtils } from '../core/models/Element'
-
-/**
- * 渲染模式
- */
-export type RenderMode = 'preview' | 'export'
+import type { ImageElement, TextElement, CanvasState } from '@/core/models'
+import type { LayoutResult, ComputedCell } from '@/layout/LayoutEngine'
 
 /**
  * 渲染选项
  */
 export interface RenderOptions {
-  /** 渲染模式 */
-  mode: RenderMode
+  /** Canvas上下文 */
+  readonly ctx: CanvasRenderingContext2D
   
-  /** 是否启用抗锯齿 */
-  antiAlias?: boolean
+  /** 布局计算结果 */
+  readonly layout: LayoutResult
   
-  /** 导出质量 (0-1, 仅用于JPEG) */
-  quality?: number
+  /** 图片列表 */
+  readonly images: readonly ImageElement[]
   
-  /** 背景色 */
-  backgroundColor?: string
+  /** 文字列表 */
+  readonly texts: readonly TextElement[]
+  
+  /** 画布状态 */
+  readonly state: CanvasState
 }
 
 /**
- * 渲染结果
+ * 图片绘制信息
  */
-export interface RenderResult {
-  /** 渲染成功 */
-  success: boolean
-  
-  /** Canvas元素 */
-  canvas: HTMLCanvasElement
-  
-  /** 渲染耗时（毫秒） */
-  renderTime: number
-  
-  /** 错误信息（如果有） */
-  error?: string
+interface ImageDrawInfo {
+  /** 源X */
+  sx: number
+  /** 源Y */
+  sy: number
+  /** 源宽度 */
+  sw: number
+  /** 源高度 */
+  sh: number
+  /** 目标X */
+  dx: number
+  /** 目标Y */
+  dy: number
+  /** 目标宽度 */
+  dw: number
+  /** 目标高度 */
+  dh: number
 }
 
 /**
- * Canvas渲染器核心类
- * 
- * 设计原则：
- * 1. 统一接口：render()方法处理所有元素类型
- * 2. 零特殊情况：图片、文字、样式都走同一个渲染管道
- * 3. 纯函数：给定输入总是产生相同输出
+ * Canvas渲染器
  */
 export class CanvasRenderer {
   /**
-   * 渲染元素数组到Canvas
-   * 
-   * 这是整个渲染器的核心方法。
-   * 遵循"单一职责原则"：只负责协调渲染流程
-   * 
-   * @param elements 要渲染的元素数组
-   * @param config 网格配置
-   * @param options 渲染选项
-   * @returns 渲染结果
+   * 渲染完整画布
    */
-  static render(
-    elements: Element[],
-    config: GridConfig,
-    options: RenderOptions = { mode: 'preview' }
-  ): RenderResult {
-    const startTime = performance.now()
+  static render(options: RenderOptions): void {
+    const { ctx, layout, images, texts, state } = options
     
-    try {
-      // 1. 创建Canvas
-      const canvas = this.createCanvas(config, options)
-      const ctx = canvas.getContext('2d')
-      
-      if (!ctx) {
-        throw new Error('无法获取Canvas渲染上下文')
-      }
-      
-      // 2. 初始化Canvas
-      this.initializeCanvas(ctx, config, options)
-      
-      // 3. 渲染所有元素
-      this.renderElements(ctx, elements, config, options)
-      
-      const renderTime = performance.now() - startTime
-      
-      return {
-        success: true,
-        canvas,
-        renderTime
-      }
-    } catch (error) {
-      const renderTime = performance.now() - startTime
-      
-      return {
-        success: false,
-        canvas: document.createElement('canvas'), // 返回空Canvas避免null
-        renderTime,
-        error: error instanceof Error ? error.message : '未知渲染错误'
-      }
-    }
+    // 清空画布
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    
+    // 1. 绘制背景
+    this.renderBackground(ctx, state)
+    
+    // 2. 绘制图片网格
+    this.renderImages(ctx, layout, images, state)
+    
+    // 3. 绘制文字
+    this.renderTexts(ctx, texts, state)
   }
-
+  
   /**
-   * 创建Canvas元素
-   * 
-   * 根据网格配置计算Canvas尺寸
-   * 这里体现了GridSystem的价值：O(1)计算画布尺寸
-   * 
-   * @param config 网格配置
-   * @param options 渲染选项
-   * @returns Canvas元素
+   * 绘制背景
+   * 参考demo中的背景绘制逻辑
    */
-  private static createCanvas(config: GridConfig, options: RenderOptions): HTMLCanvasElement {
-    const canvas = document.createElement('canvas')
-    const canvasSize = GridSystem.calculateCanvasSize(config)
-    
-    // 设置Canvas尺寸
-    canvas.width = canvasSize.width
-    canvas.height = canvasSize.height
-    
-    // 预览模式使用较小尺寸以提高性能
-    if (options.mode === 'preview') {
-      const scale = 0.5 // 预览时缩小50%
-      canvas.style.width = `${canvasSize.width * scale}px`
-      canvas.style.height = `${canvasSize.height * scale}px`
-    }
-    
-    return canvas
-  }
-
-  /**
-   * 初始化Canvas渲染上下文
-   * 
-   * 设置渲染参数和背景
-   * 
-   * @param ctx Canvas渲染上下文
-   * @param config 网格配置
-   * @param options 渲染选项
-   */
-  private static initializeCanvas(
+  private static renderBackground(
     ctx: CanvasRenderingContext2D,
-    config: GridConfig,
-    options: RenderOptions
+    state: CanvasState
   ): void {
-    // 设置渲染质量
-    ctx.imageSmoothingEnabled = options.antiAlias !== false
-    if (ctx.imageSmoothingEnabled) {
-      ctx.imageSmoothingQuality = options.mode === 'export' ? 'high' : 'medium'
-    }
+    const { background } = state
     
-    // 清空画布并设置背景色
-    const canvasSize = GridSystem.calculateCanvasSize(config)
-    ctx.clearRect(0, 0, canvasSize.width, canvasSize.height)
-    
-    if (options.backgroundColor) {
-      ctx.fillStyle = options.backgroundColor
-      ctx.fillRect(0, 0, canvasSize.width, canvasSize.height)
-    }
+    ctx.save()
+    ctx.globalAlpha = background.opacity / 100
+    ctx.fillStyle = background.color
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.restore()
   }
-
+  
   /**
-   * 渲染所有元素
-   * 
-   * 核心循环：遍历元素数组，按Z轴顺序渲染
-   * 体现了"统一处理"的设计理念
-   * 
-   * @param ctx Canvas渲染上下文
-   * @param elements 元素数组
-   * @param config 网格配置
-   * @param options 渲染选项
+   * 绘制图片网格
+   * 参考demo中的图片绘制逻辑
    */
-  private static renderElements(
+  private static renderImages(
     ctx: CanvasRenderingContext2D,
-    elements: Element[],
-    config: GridConfig,
-    options: RenderOptions
+    layout: LayoutResult,
+    images: readonly ImageElement[],
+    state: CanvasState
   ): void {
-    // 按Z轴顺序排序，确保正确的层叠显示
-    const sortedElements = elements
-      .filter(element => element.style.visible)
-      .sort((a, b) => a.transform.zIndex - b.transform.zIndex)
-    
-    // 逐个渲染元素
-    for (const element of sortedElements) {
-      this.renderElement(ctx, element, config, options)
-    }
+    layout.cells.forEach((cell, index) => {
+      if (index < images.length) {
+        // 有图片，绘制图片
+        this.renderImage(ctx, cell, images[index], state)
+      } else {
+        // 无图片，绘制占位框
+        this.renderPlaceholder(ctx, cell, index, state)
+      }
+    })
   }
-
+  
   /**
-   * 渲染单个元素
-   * 
-   * 这是"消除特殊情况"的典型实现：
-   * 图片和文字都走相同的渲染流程
-   * 
-   * @param ctx Canvas渲染上下文
-   * @param element 要渲染的元素
-   * @param config 网格配置
-   * @param options 渲染选项
+   * 绘制单张图片
+   * 使用cover模式（保持比例，居中裁剪）
    */
-  private static renderElement(
+  private static renderImage(
     ctx: CanvasRenderingContext2D,
-    element: Element,
-    config: GridConfig,
-    options: RenderOptions
+    cell: ComputedCell,
+    image: ImageElement,
+    state: CanvasState
   ): void {
-    // 计算元素在画布中的位置和尺寸
-    const bounds = GridSystem.calculateElementBounds(element.transform, config)
+    const { layout, opacity } = state
+    const { x, y, width, height } = cell
     
-    // 保存当前Canvas状态
     ctx.save()
     
-    try {
-      // 应用元素变换（旋转、透明度等）
-      this.applyElementTransform(ctx, element, bounds)
+    // 应用透明度（全局 * 图片）
+    ctx.globalAlpha = (opacity.global / 100) * (opacity.image / 100)
+    
+    // 如果有圆角，先裁剪路径
+    if (layout.radius > 0) {
+      this.roundRect(ctx, x, y, width, height, layout.radius)
+      ctx.clip()
+    }
+    
+    // 计算cover模式的绘制参数
+    const drawInfo = this.calculateCoverDraw(image, cell)
+    
+    // 绘制图片（使用裁剪方式以支持cover模式）
+    if (drawInfo) {
+      ctx.drawImage(
+        image.image,
+        drawInfo.sx,
+        drawInfo.sy,
+        drawInfo.sw,
+        drawInfo.sh,
+        drawInfo.dx,
+        drawInfo.dy,
+        drawInfo.dw,
+        drawInfo.dh
+      )
+    }
+    
+    ctx.restore()
+  }
+  
+  /**
+   * 计算cover模式的绘制参数
+   * 参考demo中的逻辑
+   */
+  private static calculateCoverDraw(
+    image: ImageElement,
+    cell: ComputedCell
+  ): ImageDrawInfo | null {
+    const imgRatio = image.width / image.height
+    const cellRatio = cell.width / cell.height
+    
+    if (imgRatio > cellRatio) {
+      // 图片更宽，高度填满，宽度居中裁剪
+      const scale = cell.height / image.height
+      const scaledWidth = image.width * scale
+      const offsetX = (scaledWidth - cell.width) / 2 / scale
       
-      // 根据元素类型进行渲染
-      if (ElementUtils.isImage(element)) {
-        this.renderImageElement(ctx, element, bounds, options)
-      } else if (ElementUtils.isText(element)) {
-        this.renderTextElement(ctx, element, bounds, options)
+      return {
+        sx: offsetX,
+        sy: 0,
+        sw: image.width - offsetX * 2,
+        sh: image.height,
+        dx: cell.x,
+        dy: cell.y,
+        dw: cell.width,
+        dh: cell.height
       }
+    } else {
+      // 图片更高，宽度填满，高度居中裁剪
+      const scale = cell.width / image.width
+      const scaledHeight = image.height * scale
+      const offsetY = (scaledHeight - cell.height) / 2 / scale
       
-      // 渲染元素样式（边框、阴影等）
-      this.renderElementStyle(ctx, element, bounds, options)
-      
-    } finally {
-      // 恢复Canvas状态
-      ctx.restore()
+      return {
+        sx: 0,
+        sy: offsetY,
+        sw: image.width,
+        sh: image.height - offsetY * 2,
+        dx: cell.x,
+        dy: cell.y,
+        dw: cell.width,
+        dh: cell.height
+      }
     }
   }
-
+  
   /**
-   * 应用元素变换
-   * 
-   * 处理旋转、透明度等变换
-   * 
-   * @param ctx Canvas渲染上下文
-   * @param element 元素
-   * @param bounds 元素边界框
+   * 绘制占位框
+   * 参考demo中的占位框逻辑
    */
-  private static applyElementTransform(
+  private static renderPlaceholder(
     ctx: CanvasRenderingContext2D,
-    element: Element,
-    bounds: { x: number; y: number; width: number; height: number }
+    cell: ComputedCell,
+    index: number,
+    state: CanvasState
   ): void {
-    // 设置透明度
-    ctx.globalAlpha = element.style.opacity
+    const { x, y, width, height } = cell
+    const { radius } = state.layout
     
-    // 应用旋转（如果有）
-    if (element.transform.rotation !== 0) {
-      const centerX = bounds.x + bounds.width / 2
-      const centerY = bounds.y + bounds.height / 2
-      
-      ctx.translate(centerX, centerY)
-      ctx.rotate(element.transform.rotation)
-      ctx.translate(-centerX, -centerY)
+    ctx.save()
+    
+    // 绘制虚线边框
+    ctx.globalAlpha = 1
+    ctx.strokeStyle = '#e0e0e0'
+    ctx.lineWidth = 2
+    ctx.setLineDash([8, 4])
+    
+    if (radius > 0) {
+      this.roundRect(ctx, x + 1, y + 1, width - 2, height - 2, radius)
+      ctx.stroke()
+    } else {
+      ctx.strokeRect(x + 1, y + 1, width - 2, height - 2)
     }
+    
+    ctx.setLineDash([])
+    
+    // 绘制提示文字
+    ctx.fillStyle = '#999'
+    ctx.font = '14px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(`位置 ${index + 1}`, x + width / 2, y + height / 2 - 10)
+    
+    ctx.font = '12px Arial'
+    ctx.fillText('点击上传图片', x + width / 2, y + height / 2 + 10)
+    
+    ctx.restore()
   }
-
+  
   /**
-   * 渲染图片元素
-   * 
-   * 使用ImageData直接绘制到Canvas
-   * 
-   * @param ctx Canvas渲染上下文
-   * @param element 图片元素
-   * @param bounds 元素边界框
-   * @param options 渲染选项
+   * 绘制所有文字
    */
-  private static renderImageElement(
+  private static renderTexts(
     ctx: CanvasRenderingContext2D,
-    element: Element & { content: import('../core/models/Element').ImageContent },
-    bounds: { x: number; y: number; width: number; height: number },
-    options: RenderOptions
+    texts: readonly TextElement[],
+    state: CanvasState
   ): void {
-    const { imageData, thumbnail } = element.content
-    
-    // 预览模式使用缩略图以提高性能
-    const sourceData = options.mode === 'preview' ? thumbnail : imageData
-    
-    // 创建临时Canvas来绘制ImageData
-    const tempCanvas = document.createElement('canvas')
-    tempCanvas.width = sourceData.width
-    tempCanvas.height = sourceData.height
-    
-    const tempCtx = tempCanvas.getContext('2d')
-    if (!tempCtx) return
-    
-    tempCtx.putImageData(sourceData, 0, 0)
-    
-    // 将临时Canvas绘制到目标Canvas，并缩放到指定尺寸
-    ctx.drawImage(tempCanvas, bounds.x, bounds.y, bounds.width, bounds.height)
+    texts.forEach(text => {
+      if (text.visible) {
+        this.renderText(ctx, text, state)
+      }
+    })
   }
-
+  
   /**
-   * 渲染文字元素
-   * 
-   * 使用Canvas文字API绘制文本
-   * 
-   * @param ctx Canvas渲染上下文
-   * @param element 文字元素
-   * @param bounds 元素边界框
-   * @param options 渲染选项
+   * 绘制单个文字
    */
-  private static renderTextElement(
+  private static renderText(
     ctx: CanvasRenderingContext2D,
-    element: Element & { content: import('../core/models/Element').TextContent },
-    bounds: { x: number; y: number; width: number; height: number },
-    options: RenderOptions
+    text: TextElement,
+    state: CanvasState
   ): void {
-    const { text, fontFamily, fontSize, color, textAlign, fontWeight } = element.content
+    const { position, style, content } = text
+    
+    ctx.save()
+    
+    // 应用全局透明度
+    ctx.globalAlpha = state.opacity.global / 100
     
     // 设置字体样式
-    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
-    ctx.fillStyle = color
-    ctx.textAlign = textAlign
-    ctx.textBaseline = 'top'
-    
-    // 绘制背景色（如果有）
-    if (element.style.backgroundColor !== 'transparent') {
-      ctx.fillStyle = element.style.backgroundColor
-      ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
-      ctx.fillStyle = color // 恢复文字颜色
-    }
-    
-    // 计算文字位置
-    let textX = bounds.x
-    if (textAlign === 'center') {
-      textX = bounds.x + bounds.width / 2
-    } else if (textAlign === 'right') {
-      textX = bounds.x + bounds.width
-    }
+    ctx.fillStyle = style.color
+    ctx.font = `${style.fontWeight} ${style.fontSize}px ${style.fontFamily}`
+    ctx.textAlign = style.textAlign
+    ctx.textBaseline = style.textBaseline
     
     // 绘制文字
-    ctx.fillText(text, textX, bounds.y)
-  }
-
-  /**
-   * 渲染元素样式
-   * 
-   * 处理边框、阴影等装饰性样式
-   * 
-   * @param ctx Canvas渲染上下文
-   * @param element 元素
-   * @param bounds 元素边界框
-   * @param options 渲染选项
-   */
-  private static renderElementStyle(
-    ctx: CanvasRenderingContext2D,
-    element: Element,
-    bounds: { x: number; y: number; width: number; height: number },
-    options: RenderOptions
-  ): void {
-    // 绘制阴影
-    if (element.style.shadow.enabled) {
-      ctx.shadowColor = element.style.shadow.color
-      ctx.shadowBlur = element.style.shadow.blur
-      ctx.shadowOffsetX = element.style.shadow.offsetX
-      ctx.shadowOffsetY = element.style.shadow.offsetY
-      
-      // 绘制阴影矩形（透明填充）
-      ctx.fillStyle = 'transparent'
-      ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
-      
-      // 清除阴影设置
-      ctx.shadowColor = 'transparent'
-      ctx.shadowBlur = 0
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
-    }
+    ctx.fillText(content, position.x, position.y)
     
-    // 绘制边框
-    if (element.style.borderWidth > 0) {
-      ctx.strokeStyle = element.style.borderColor
-      ctx.lineWidth = element.style.borderWidth
-      
-      if (element.style.borderRadius > 0) {
-        // 绘制圆角矩形边框
-        this.drawRoundedRect(
-          ctx,
-          bounds.x,
-          bounds.y,
-          bounds.width,
-          bounds.height,
-          element.style.borderRadius,
-          false, // 不填充，只描边
-          true   // 描边
-        )
-      } else {
-        // 绘制普通矩形边框
-        ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height)
-      }
-    }
+    ctx.restore()
   }
-
+  
   /**
-   * 绘制圆角矩形
-   * 
-   * Canvas API没有内置圆角矩形，需要手动绘制
-   * 
-   * @param ctx Canvas渲染上下文
-   * @param x X坐标
-   * @param y Y坐标
-   * @param width 宽度
-   * @param height 高度
-   * @param radius 圆角半径
-   * @param fill 是否填充
-   * @param stroke 是否描边
+   * 绘制圆角矩形路径
+   * 参考demo中的roundRect函数
    */
-  private static drawRoundedRect(
+  private static roundRect(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
     width: number,
     height: number,
-    radius: number,
-    fill = false,
-    stroke = false
+    radius: number
   ): void {
     ctx.beginPath()
     ctx.moveTo(x + radius, y)
@@ -442,90 +309,37 @@ export class CanvasRenderer {
     ctx.lineTo(x, y + radius)
     ctx.quadraticCurveTo(x, y, x + radius, y)
     ctx.closePath()
-    
-    if (fill) {
-      ctx.fill()
-    }
-    if (stroke) {
-      ctx.stroke()
-    }
+  }
+  
+  /**
+   * 导出为DataURL
+   */
+  static toDataURL(
+    canvas: HTMLCanvasElement,
+    format: 'image/png' | 'image/jpeg' = 'image/png',
+    quality: number = 1.0
+  ): string {
+    return canvas.toDataURL(format, quality)
+  }
+  
+  /**
+   * 导出为Blob
+   */
+  static toBlob(
+    canvas: HTMLCanvasElement,
+    format: 'image/png' | 'image/jpeg' = 'image/png',
+    quality: number = 1.0
+  ): Promise<Blob | null> {
+    return new Promise((resolve) => {
+      canvas.toBlob(resolve, format, quality)
+    })
   }
 }
 
 /**
- * 渲染器工具类
- * 提供便捷的渲染操作
+ * 快捷渲染函数
  */
-export class RendererUtils {
-  /**
-   * 快速预览渲染
-   * 
-   * @param elements 元素数组
-   * @param config 网格配置
-   * @returns 渲染结果
-   */
-  static renderPreview(elements: Element[], config: GridConfig): RenderResult {
-    return CanvasRenderer.render(elements, config, {
-      mode: 'preview',
-      antiAlias: false, // 预览时关闭抗锯齿以提高性能
-      backgroundColor: '#ffffff'
-    })
-  }
-
-  /**
-   * 高质量导出渲染
-   * 
-   * @param elements 元素数组
-   * @param config 网格配置
-   * @param backgroundColor 背景色
-   * @returns 渲染结果
-   */
-  static renderExport(
-    elements: Element[],
-    config: GridConfig,
-    backgroundColor = '#ffffff'
-  ): RenderResult {
-    return CanvasRenderer.render(elements, config, {
-      mode: 'export',
-      antiAlias: true,
-      quality: 0.95,
-      backgroundColor
-    })
-  }
-
-  /**
-   * 将Canvas导出为图片数据
-   * 
-   * @param canvas Canvas元素
-   * @param format 图片格式
-   * @param quality 质量 (0-1)
-   * @returns 图片数据URL
-   */
-  static exportToDataURL(
-    canvas: HTMLCanvasElement,
-    format: 'png' | 'jpeg' = 'png',
-    quality = 0.95
-  ): string {
-    const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
-    return canvas.toDataURL(mimeType, quality)
-  }
-
-  /**
-   * 将Canvas导出为Blob
-   * 
-   * @param canvas Canvas元素
-   * @param format 图片格式
-   * @param quality 质量 (0-1)
-   * @returns Promise<Blob>
-   */
-  static exportToBlob(
-    canvas: HTMLCanvasElement,
-    format: 'png' | 'jpeg' = 'png',
-    quality = 0.95
-  ): Promise<Blob | null> {
-    const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
-    return new Promise((resolve) => {
-      canvas.toBlob(resolve, mimeType, quality)
-    })
-  }
+export function renderCanvas(options: RenderOptions): void {
+  CanvasRenderer.render(options)
 }
+

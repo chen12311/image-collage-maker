@@ -18,9 +18,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['vue'],
-          'core': ['./src/core/models/Element.ts', './src/core/models/Transform.ts', './src/core/models/GridConfig.ts'],
-          'layout': ['./src/layout/GridSystem.ts', './src/layout/LayoutEngine.ts']
+          'vendor': ['vue', 'pinia']
         }
       }
     }

@@ -1,0 +1,407 @@
+/**
+ * 应用主Store
+ * 
+ * 使用Pinia管理应用全局状态，替代demo中的全局state对象
+ */
+
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import {
+  type LayoutConfig,
+  type LayoutType,
+  type ImageElement,
+  type TextElement,
+  type CanvasState,
+  type CanvasSize,
+  type BackgroundConfig,
+  type OpacityConfig,
+  createLayoutConfig,
+  LAYOUT_TEMPLATES
+} from '@/core/models'
+
+/**
+ * 应用Store
+ */
+export const useAppStore = defineStore('app', () => {
+  // ============================================================================
+  // 状态定义
+  // ============================================================================
+  
+  /** 布局类型 */
+  const layoutType = ref<LayoutType>(1)
+  
+  /** 图片间距 */
+  const spacing = ref(10)
+  
+  /** 边距 */
+  const padding = ref(0)
+  
+  /** 圆角 */
+  const radius = ref(0)
+  
+  /** 背景颜色 */
+  const bgColor = ref('#ffffff')
+  
+  /** 背景透明度 */
+  const bgOpacity = ref(100)
+  
+  /** 全局透明度 */
+  const globalOpacity = ref(100)
+  
+  /** 图片透明度 */
+  const imageOpacity = ref(100)
+  
+  /** 画布宽度 */
+  const canvasWidth = ref(800)
+  
+  /** 画布高度 */
+  const canvasHeight = ref(800)
+  
+  /** 图片列表 */
+  const images = ref<ImageElement[]>([])
+  
+  /** 文字列表 */
+  const texts = ref<TextElement[]>([])
+  
+  // ============================================================================
+  // 计算属性
+  // ============================================================================
+  
+  /** 布局配置 */
+  const layoutConfig = computed<LayoutConfig>(() => createLayoutConfig(
+    layoutType.value,
+    spacing.value,
+    padding.value,
+    radius.value
+  ))
+  
+  /** 画布尺寸 */
+  const canvasSize = computed<CanvasSize>(() => ({
+    width: canvasWidth.value,
+    height: canvasHeight.value
+  }))
+  
+  /** 背景配置 */
+  const backgroundConfig = computed<BackgroundConfig>(() => ({
+    color: bgColor.value,
+    opacity: bgOpacity.value
+  }))
+  
+  /** 透明度配置 */
+  const opacityConfig = computed<OpacityConfig>(() => ({
+    global: globalOpacity.value,
+    image: imageOpacity.value
+  }))
+  
+  /** 当前画布状态（用于历史记录） */
+  const currentState = computed<CanvasState>(() => ({
+    layout: layoutConfig.value,
+    images: images.value,
+    texts: texts.value,
+    canvasSize: canvasSize.value,
+    background: backgroundConfig.value,
+    opacity: opacityConfig.value,
+    timestamp: Date.now()
+  }))
+  
+  /** 布局单元格数量 */
+  const layoutCellCount = computed(() => LAYOUT_TEMPLATES[layoutType.value].length)
+  
+  /** 是否有图片 */
+  const hasImages = computed(() => images.value.length > 0)
+  
+  /** 是否有文字 */
+  const hasTexts = computed(() => texts.value.length > 0)
+  
+  // ============================================================================
+  // 布局操作
+  // ============================================================================
+  
+  /**
+   * 设置布局类型
+   */
+  function setLayoutType(type: LayoutType) {
+    layoutType.value = type
+  }
+  
+  /**
+   * 设置间距
+   */
+  function setSpacing(value: number) {
+    spacing.value = Math.max(0, Math.min(50, value))
+  }
+  
+  /**
+   * 设置边距
+   */
+  function setPadding(value: number) {
+    padding.value = Math.max(0, Math.min(100, value))
+  }
+  
+  /**
+   * 设置圆角
+   */
+  function setRadius(value: number) {
+    radius.value = Math.max(0, Math.min(50, value))
+  }
+  
+  // ============================================================================
+  // 画布操作
+  // ============================================================================
+  
+  /**
+   * 设置画布尺寸
+   */
+  function setCanvasSize(width: number, height: number) {
+    canvasWidth.value = Math.max(100, width)
+    canvasHeight.value = Math.max(100, height)
+  }
+  
+  /**
+   * 使用预设尺寸
+   */
+  function usePresetSize(preset: string) {
+    const [w, h] = preset.split('x').map(Number)
+    setCanvasSize(w, h)
+  }
+  
+  // ============================================================================
+  // 背景操作
+  // ============================================================================
+  
+  /**
+   * 设置背景颜色
+   */
+  function setBgColor(color: string) {
+    bgColor.value = color
+  }
+  
+  /**
+   * 设置背景透明度
+   */
+  function setBgOpacity(value: number) {
+    bgOpacity.value = Math.max(0, Math.min(100, value))
+  }
+  
+  // ============================================================================
+  // 透明度操作
+  // ============================================================================
+  
+  /**
+   * 设置全局透明度
+   */
+  function setGlobalOpacity(value: number) {
+    globalOpacity.value = Math.max(0, Math.min(100, value))
+  }
+  
+  /**
+   * 设置图片透明度
+   */
+  function setImageOpacity(value: number) {
+    imageOpacity.value = Math.max(0, Math.min(100, value))
+  }
+  
+  // ============================================================================
+  // 图片操作
+  // ============================================================================
+  
+  /**
+   * 添加图片
+   */
+  function addImage(image: ImageElement) {
+    images.value.push(image)
+  }
+  
+  /**
+   * 添加多张图片
+   */
+  function addImages(newImages: ImageElement[]) {
+    images.value.push(...newImages)
+  }
+  
+  /**
+   * 删除图片
+   */
+  function removeImage(id: string) {
+    const index = images.value.findIndex(img => img.id === id)
+    if (index !== -1) {
+      images.value.splice(index, 1)
+      // 重新索引
+      images.value.forEach((img, idx) => {
+        img.index = idx
+      })
+    }
+  }
+  
+  /**
+   * 清空所有图片
+   */
+  function clearImages() {
+    images.value = []
+  }
+  
+  /**
+   * 重新排序图片
+   */
+  function reorderImages(newOrder: ImageElement[]) {
+    images.value = newOrder.map((img, index) => ({
+      ...img,
+      index
+    }))
+  }
+  
+  // ============================================================================
+  // 文字操作
+  // ============================================================================
+  
+  /**
+   * 添加文字
+   */
+  function addText(text: TextElement) {
+    texts.value.push(text)
+  }
+  
+  /**
+   * 更新文字
+   */
+  function updateText(id: string, updates: Partial<TextElement>) {
+    const index = texts.value.findIndex(t => t.id === id)
+    if (index !== -1) {
+      texts.value[index] = {
+        ...texts.value[index],
+        ...updates
+      }
+    }
+  }
+  
+  /**
+   * 删除文字
+   */
+  function removeText(id: string) {
+    const index = texts.value.findIndex(t => t.id === id)
+    if (index !== -1) {
+      texts.value.splice(index, 1)
+    }
+  }
+  
+  /**
+   * 清空所有文字
+   */
+  function clearTexts() {
+    texts.value = []
+  }
+  
+  /**
+   * 选中文字
+   */
+  function selectText(id: string) {
+    texts.value.forEach(t => {
+      t.selected = t.id === id
+    })
+  }
+  
+  /**
+   * 取消选中所有文字
+   */
+  function deselectAllTexts() {
+    texts.value.forEach(t => {
+      t.selected = false
+    })
+  }
+  
+  // ============================================================================
+  // 状态管理
+  // ============================================================================
+  
+  /**
+   * 重置为初始状态
+   */
+  function reset() {
+    layoutType.value = 1
+    spacing.value = 10
+    padding.value = 0
+    radius.value = 0
+    bgColor.value = '#ffffff'
+    bgOpacity.value = 100
+    globalOpacity.value = 100
+    imageOpacity.value = 100
+    canvasWidth.value = 800
+    canvasHeight.value = 800
+    images.value = []
+    texts.value = []
+  }
+  
+  /**
+   * 从状态快照恢复（用于撤销/重做）
+   */
+  function restoreState(state: CanvasState) {
+    layoutType.value = state.layout.type
+    spacing.value = state.layout.spacing
+    padding.value = state.layout.padding
+    radius.value = state.layout.radius
+    bgColor.value = state.background.color
+    bgOpacity.value = state.background.opacity
+    globalOpacity.value = state.opacity.global
+    imageOpacity.value = state.opacity.image
+    canvasWidth.value = state.canvasSize.width
+    canvasHeight.value = state.canvasSize.height
+    images.value = [...state.images]
+    texts.value = [...state.texts]
+  }
+  
+  // ============================================================================
+  // 返回Store API
+  // ============================================================================
+  
+  return {
+    // 状态
+    layoutType,
+    spacing,
+    padding,
+    radius,
+    bgColor,
+    bgOpacity,
+    globalOpacity,
+    imageOpacity,
+    canvasWidth,
+    canvasHeight,
+    images,
+    texts,
+    
+    // 计算属性
+    layoutConfig,
+    canvasSize,
+    backgroundConfig,
+    opacityConfig,
+    currentState,
+    layoutCellCount,
+    hasImages,
+    hasTexts,
+    
+    // 方法
+    setLayoutType,
+    setSpacing,
+    setPadding,
+    setRadius,
+    setCanvasSize,
+    usePresetSize,
+    setBgColor,
+    setBgOpacity,
+    setGlobalOpacity,
+    setImageOpacity,
+    addImage,
+    addImages,
+    removeImage,
+    clearImages,
+    reorderImages,
+    addText,
+    updateText,
+    removeText,
+    clearTexts,
+    selectText,
+    deselectAllTexts,
+    reset,
+    restoreState
+  }
+})
+

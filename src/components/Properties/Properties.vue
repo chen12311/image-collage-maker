@@ -1,65 +1,105 @@
 <template>
   <div class="properties">
-    <div class="properties-title">透明度信息</div>
-    
-    <!-- 全局透明度 -->
-    <div class="control-group">
-      <label class="control-label">整体透明度</label>
-      <div class="control-row">
+    <!-- 透明度设置 -->
+    <div class="properties-section">
+      <div class="section-header">
+        <Icon name="eye" size="sm" />
+        <h3 class="section-title">透明度</h3>
+      </div>
+      
+      <!-- 全局透明度 -->
+      <div class="control-group">
+        <div class="control-label-row">
+          <label class="control-label">整体透明度</label>
+          <span class="control-value">{{ store.globalOpacity }}%</span>
+        </div>
         <input
           type="range"
-          class="control-input"
+          class="control-slider"
           min="0"
           max="100"
           :value="store.globalOpacity"
           @input="onGlobalOpacityChange"
         >
-        <span class="control-value">{{ store.globalOpacity }}%</span>
       </div>
-    </div>
-    
-    <!-- 图片透明度 -->
-    <div class="control-group">
-      <label class="control-label">图片透明度</label>
-      <div class="control-row">
+      
+      <!-- 图片透明度 -->
+      <div class="control-group">
+        <div class="control-label-row">
+          <label class="control-label">图片透明度</label>
+          <span class="control-value">{{ store.imageOpacity }}%</span>
+        </div>
         <input
           type="range"
-          class="control-input"
+          class="control-slider"
           min="0"
           max="100"
           :value="store.imageOpacity"
           @input="onImageOpacityChange"
         >
-        <span class="control-value">{{ store.imageOpacity }}%</span>
       </div>
     </div>
     
+    <div class="divider"></div>
+    
     <!-- 历史操作 -->
-    <div class="history-section">
-      <div class="properties-title">历史操作</div>
-      <div class="history-buttons">
-        <button
-          class="btn btn-secondary"
-          :disabled="!historyManager.canUndo"
-          @click="undo"
-          title="撤销 (Ctrl+Z)"
-        >
-          撤销
-        </button>
-        <button
-          class="btn btn-secondary"
-          :disabled="!historyManager.canRedo"
-          @click="redo"
-          title="重做 (Ctrl+Y)"
-        >
-          重做
-        </button>
+    <div class="properties-section">
+      <div class="section-header">
+        <Icon name="undo" size="sm" />
+        <h3 class="section-title">历史操作</h3>
       </div>
+      
+      <div class="history-buttons">
+        <Tooltip content="撤销" placement="bottom" shortcut="Ctrl+Z">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="undo"
+            :disabled="!historyManager.canUndo"
+            @click="undo"
+            block
+          >
+            撤销
+          </Button>
+        </Tooltip>
+        <Tooltip content="重做" placement="bottom" shortcut="Ctrl+Y">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="redo"
+            :disabled="!historyManager.canRedo"
+            @click="redo"
+            block
+          >
+            重做
+          </Button>
+        </Tooltip>
+      </div>
+      
       <div class="history-info">
-        <span>撤销: {{ historyManager.undoCount }}</span>
-        <span>重做: {{ historyManager.redoCount }}</span>
+        <div class="history-stat">
+          <span class="stat-label">可撤销</span>
+          <span class="stat-value">{{ historyManager.undoCount }}</span>
+        </div>
+        <div class="history-stat">
+          <span class="stat-label">可重做</span>
+          <span class="stat-value">{{ historyManager.redoCount }}</span>
+        </div>
       </div>
     </div>
+    
+    <div class="divider"></div>
+    
+    <!-- 重置按钮 -->
+    <Button
+      variant="ghost"
+      size="md"
+      icon="trash"
+      block
+      @click="resetAll"
+    >
+      重置所有设置
+    </Button>
   </div>
 </template>
 
@@ -67,8 +107,14 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import { createHistoryManager } from '@/history/HistoryManager'
+import Icon from '@/components/Common/Icon.vue'
+import Button from '@/components/Common/Button.vue'
+import Tooltip from '@/components/Common/Tooltip.vue'
+import { toast } from '@/composables/useToast'
+import { useKeyboard, SHORTCUTS } from '@/composables/useKeyboard'
 
 const store = useAppStore()
+const { registerShortcut } = useKeyboard()
 
 /** 历史管理器 */
 const historyManager = createHistoryManager()
@@ -90,6 +136,7 @@ function undo() {
   const state = historyManager.undo()
   if (state) {
     store.restoreState(state)
+    toast.info('已撤销')
   }
 }
 
@@ -98,18 +145,23 @@ function redo() {
   const state = historyManager.redo()
   if (state) {
     store.restoreState(state)
+    toast.info('已重做')
+  }
+}
+
+/** 重置所有 */
+function resetAll() {
+  if (confirm('确定要重置所有设置吗？这将清空所有内容。')) {
+    store.reset()
+    historyManager.clear()
+    historyManager.push(store.currentState)
+    toast.success('已重置所有设置')
   }
 }
 
 /** 键盘快捷键 */
 function handleKeydown(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-    e.preventDefault()
-    undo()
-  } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-    e.preventDefault()
-    redo()
-  }
+  // 快捷键已在 useKeyboard 中全局注册
 }
 
 /** 监听状态变化，记录历史 */
@@ -134,98 +186,119 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
+
+// 注册快捷键
+registerShortcut({
+  ...SHORTCUTS.UNDO,
+  handler: () => undo()
+})
+
+registerShortcut({
+  ...SHORTCUTS.REDO,
+  handler: () => redo()
+})
 </script>
 
 <style scoped>
 .properties {
-  background: white;
-  border-left: 1px solid #e0e0e0;
-  padding: 16px;
+  height: 100%;
+  padding: var(--spacing-5);
   overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
 }
 
-.properties-title {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 16px;
-  color: #333;
+/* 分组 */
+.properties-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
 }
 
+/* 分组标题 */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--color-neutral-700);
+}
+
+.section-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* 控件组 */
 .control-group {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.control-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .control-label {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.control-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.control-input {
-  flex: 1;
-  height: 6px;
-  padding: 0;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
 }
 
 .control-value {
-  font-size: 12px;
-  color: #999;
-  min-width: 40px;
-  text-align: right;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-500);
+  font-family: var(--font-family-mono);
 }
 
-.history-section {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #e0e0e0;
+.control-slider {
+  width: 100%;
 }
 
+/* 历史按钮 */
 .history-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: var(--spacing-2);
 }
 
-.btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.3s;
-}
-
-.btn-secondary {
-  background: white;
-  color: #666;
-  border: 1px solid #d9d9d9;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  color: #1890ff;
-  border-color: #1890ff;
-}
-
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* 历史信息 */
 .history-info {
   display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #999;
+  justify-content: space-around;
+  padding: var(--spacing-3);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+}
+
+.history-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-600);
+}
+
+.stat-value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-500);
+  font-family: var(--font-family-mono);
+}
+
+/* 分割线 */
+.divider {
+  height: 1px;
+  background: var(--border-color-light);
 }
 </style>
-

@@ -8,34 +8,46 @@
         class="tool-tab"
         :class="{ active: activeTab === tab.id }"
         @click="activeTab = tab.id"
+        :aria-label="tab.label"
       >
-        {{ tab.label }}
+        <Icon :name="tab.icon" size="md" class="tab-icon" />
+        <span class="tab-label">{{ tab.label }}</span>
       </button>
     </div>
     
     <!-- 工具面板内容 -->
     <div class="tool-content">
-      <LayoutPanel v-show="activeTab === 'layout'" />
-      <ImagePanel v-show="activeTab === 'image'" />
-      <TextPanel v-show="activeTab === 'text'" />
-      <BackgroundPanel v-show="activeTab === 'background'" />
+      <Transition name="fade" mode="out-in">
+        <LayoutPanel v-if="activeTab === 'layout'" key="layout" />
+        <ImagePanel v-else-if="activeTab === 'image'" key="image" />
+        <TextPanel v-else-if="activeTab === 'text'" key="text" />
+        <BackgroundPanel v-else-if="activeTab === 'background'" key="background" />
+      </Transition>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import Icon from '@/components/Common/Icon.vue'
 import LayoutPanel from './LayoutPanel.vue'
 import ImagePanel from './ImagePanel.vue'
 import TextPanel from './TextPanel.vue'
 import BackgroundPanel from './BackgroundPanel.vue'
 
+/** 标签页配置 */
+interface Tab {
+  id: string
+  label: string
+  icon: string
+}
+
 /** 标签页列表 */
-const tabs = [
-  { id: 'layout', label: '布局' },
-  { id: 'image', label: '传图' },
-  { id: 'text', label: '文字' },
-  { id: 'background', label: '背景' }
+const tabs: Tab[] = [
+  { id: 'layout', label: '布局', icon: 'layout' },
+  { id: 'image', label: '图片', icon: 'image' },
+  { id: 'text', label: '文字', icon: 'text' },
+  { id: 'background', label: '背景', icon: 'background' }
 ]
 
 /** 当前激活的标签页 */
@@ -44,44 +56,103 @@ const activeTab = ref('layout')
 
 <style scoped>
 .sidebar {
-  background: white;
-  border-right: 1px solid #e0e0e0;
+  height: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   overflow: hidden;
 }
 
+/* 标签页 */
 .tool-tabs {
   display: flex;
-  border-bottom: 1px solid #e0e0e0;
+  flex-direction: column;
+  width: 72px;
+  flex-shrink: 0;
+  background: var(--color-neutral-0);
+  border-right: 1px solid var(--border-color-light);
 }
 
 .tool-tab {
-  flex: 1;
-  padding: 12px;
-  text-align: center;
-  cursor: pointer;
-  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  background: transparent;
   border: none;
-  font-size: 14px;
-  transition: all 0.3s;
-  border-bottom: 2px solid transparent;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  color: var(--color-neutral-600);
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.tool-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-primary-50);
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.tool-tab:hover::before {
+  opacity: 1;
 }
 
 .tool-tab:hover {
-  background: #f0f0f0;
+  color: var(--color-primary-500);
 }
 
 .tool-tab.active {
-  background: white;
-  border-bottom-color: #1890ff;
-  color: #1890ff;
+  color: var(--color-primary-500);
+  border-left-color: var(--color-primary-500);
+  background: var(--color-primary-50);
 }
 
+.tool-tab.active::before {
+  opacity: 0.5;
+}
+
+.tab-icon {
+  position: relative;
+  z-index: 1;
+  transition: var(--transition-transform);
+  flex-shrink: 0;
+}
+
+.tool-tab:hover .tab-icon {
+  transform: scale(1.1);
+}
+
+.tab-label {
+  position: relative;
+  z-index: 1;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* 工具内容 */
 .tool-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  overflow-x: hidden;
+  padding: var(--spacing-5);
+  background: var(--color-neutral-0);
+}
+
+/* 淡入淡出动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-in-out);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
 

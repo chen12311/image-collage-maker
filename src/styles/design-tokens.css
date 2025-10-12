@@ -1,0 +1,215 @@
+/**
+ * 设计令牌 (Design Tokens)
+ * 定义整个应用的设计语言基础
+ */
+
+:root {
+  /* ============================================================================
+   * 颜色系统 - 现代扁平化风格
+   * ========================================================================== */
+  
+  /* 主色 - 蓝色系 */
+  --color-primary-50: #e6f4ff;
+  --color-primary-100: #bae0ff;
+  --color-primary-200: #91caff;
+  --color-primary-300: #69b1ff;
+  --color-primary-400: #4096ff;
+  --color-primary-500: #1677ff;
+  --color-primary-600: #0958d9;
+  --color-primary-700: #003eb3;
+  --color-primary-800: #002c8c;
+  --color-primary-900: #001d66;
+
+  /* 中性色 - 灰色系 */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e8e8e8;
+  --color-neutral-300: #d9d9d9;
+  --color-neutral-400: #bfbfbf;
+  --color-neutral-500: #8c8c8c;
+  --color-neutral-600: #595959;
+  --color-neutral-700: #434343;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #1f1f1f;
+  --color-neutral-1000: #141414;
+
+  /* 语义色 */
+  --color-success: #52c41a;
+  --color-success-light: #95de64;
+  --color-success-bg: #f6ffed;
+  
+  --color-warning: #faad14;
+  --color-warning-light: #ffc53d;
+  --color-warning-bg: #fffbe6;
+  
+  --color-error: #ff4d4f;
+  --color-error-light: #ff7875;
+  --color-error-bg: #fff1f0;
+  
+  --color-info: #1677ff;
+  --color-info-light: #69b1ff;
+  --color-info-bg: #e6f4ff;
+
+  /* 渐变色 */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-cool: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
+  /* ============================================================================
+   * 间距系统 - 8px网格
+   * ========================================================================== */
+  
+  --spacing-0: 0;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+
+  /* ============================================================================
+   * 圆角系统
+   * ========================================================================== */
+  
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ============================================================================
+   * 阴影系统
+   * ========================================================================== */
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+  /* 彩色阴影 */
+  --shadow-primary: 0 4px 12px rgba(22, 119, 255, 0.15);
+  --shadow-success: 0 4px 12px rgba(82, 196, 26, 0.15);
+  --shadow-warning: 0 4px 12px rgba(250, 173, 20, 0.15);
+  --shadow-error: 0 4px 12px rgba(255, 77, 79, 0.15);
+
+  /* ============================================================================
+   * 字体系统
+   * ========================================================================== */
+  
+  /* 字体族 */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 
+                      'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', 
+                      Helvetica, Arial, sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', 
+                      Consolas, 'Courier New', monospace;
+
+  /* 字号 */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 30px;
+  --font-size-5xl: 36px;
+
+  /* 行高 */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  --line-height-loose: 2;
+
+  /* 字重 */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ============================================================================
+   * 动画系统
+   * ========================================================================== */
+  
+  /* 时长 */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 350ms;
+  --duration-slower: 500ms;
+
+  /* 缓动函数 */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* ============================================================================
+   * 层级系统 (z-index)
+   * ========================================================================== */
+  
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+
+  /* ============================================================================
+   * 断点系统
+   * ========================================================================== */
+  
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1600px;
+
+  /* ============================================================================
+   * 布局尺寸
+   * ========================================================================== */
+  
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 64px;
+  --properties-width: 280px;
+  --header-height: 56px;
+  --toolbar-height: 48px;
+
+  /* ============================================================================
+   * 边框
+   * ========================================================================== */
+  
+  --border-width-thin: 1px;
+  --border-width-base: 1px;
+  --border-width-thick: 2px;
+  
+  --border-color-base: var(--color-neutral-300);
+  --border-color-light: var(--color-neutral-200);
+  --border-color-dark: var(--color-neutral-400);
+
+  /* ============================================================================
+   * 过渡效果
+   * ========================================================================== */
+  
+  --transition-base: all var(--duration-base) var(--ease-in-out);
+  --transition-fast: all var(--duration-fast) var(--ease-in-out);
+  --transition-slow: all var(--duration-slow) var(--ease-in-out);
+  --transition-transform: transform var(--duration-base) var(--ease-smooth);
+  --transition-opacity: opacity var(--duration-base) var(--ease-in-out);
+}
+

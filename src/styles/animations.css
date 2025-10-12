@@ -1,0 +1,427 @@
+/**
+ * 动画工具类
+ * 提供常用的动画效果
+ */
+
+@import './design-tokens.css';
+
+/* ============================================================================
+ * 淡入淡出动画
+ * ========================================================================== */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fade-in var(--duration-base) var(--ease-out);
+}
+
+.fade-out {
+  animation: fade-out var(--duration-base) var(--ease-in);
+}
+
+/* ============================================================================
+ * 滑入滑出动画
+ * ========================================================================== */
+
+@keyframes slide-in-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-down {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-up {
+  animation: slide-in-up var(--duration-base) var(--ease-out);
+}
+
+.slide-in-down {
+  animation: slide-in-down var(--duration-base) var(--ease-out);
+}
+
+.slide-in-left {
+  animation: slide-in-left var(--duration-base) var(--ease-out);
+}
+
+.slide-in-right {
+  animation: slide-in-right var(--duration-base) var(--ease-out);
+}
+
+/* ============================================================================
+ * 缩放动画
+ * ========================================================================== */
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scale-out {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+.scale-in {
+  animation: scale-in var(--duration-base) var(--ease-bounce);
+}
+
+.scale-out {
+  animation: scale-out var(--duration-base) var(--ease-in);
+}
+
+/* ============================================================================
+ * 弹跳动画
+ * ========================================================================== */
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.bounce {
+  animation: bounce var(--duration-slower) var(--ease-in-out) infinite;
+}
+
+.bounce-in {
+  animation: bounce-in var(--duration-slow) var(--ease-bounce);
+}
+
+/* ============================================================================
+ * 闪烁提示动画
+ * ========================================================================== */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+.pulse {
+  animation: pulse 2s var(--ease-in-out) infinite;
+}
+
+/* ============================================================================
+ * 旋转动画
+ * ========================================================================== */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.spin-slow {
+  animation: spin 3s linear infinite;
+}
+
+.spin-reverse {
+  animation: spin-reverse 1s linear infinite;
+}
+
+/* ============================================================================
+ * 摇晃动画
+ * ========================================================================== */
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.shake {
+  animation: shake var(--duration-slow) var(--ease-in-out);
+}
+
+/* ============================================================================
+ * 虚线动画（用于上传区域边框）
+ * ========================================================================== */
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+@keyframes dash-border {
+  to {
+    background-position: 100% 0, 0 100%, 0 0, 100% 100%;
+  }
+}
+
+/* ============================================================================
+ * 渐进加载动画（骨架屏）
+ * ========================================================================== */
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 0%,
+    var(--color-neutral-100) 50%,
+    var(--color-neutral-200) 100%
+  );
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+/* ============================================================================
+ * 悬停缩放效果
+ * ========================================================================== */
+
+.hover-scale {
+  transition: var(--transition-transform);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-lift {
+  transition: transform var(--duration-base) var(--ease-out), 
+              box-shadow var(--duration-base) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================================
+ * 按钮点击反馈
+ * ========================================================================== */
+
+.active-press {
+  transition: transform var(--duration-fast) var(--ease-in-out);
+}
+
+.active-press:active {
+  transform: scale(0.95);
+}
+
+/* ============================================================================
+ * 渐变背景动画
+ * ========================================================================== */
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-animate {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* ============================================================================
+ * 呼吸灯效果
+ * ========================================================================== */
+
+@keyframes breathing {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.breathing {
+  animation: breathing 2s ease-in-out infinite;
+}
+
+/* ============================================================================
+ * 波纹效果
+ * ========================================================================== */
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple 0.6s ease-out;
+  pointer-events: none;
+}
+
+/* ============================================================================
+ * Vue Transition 类
+ * ========================================================================== */
+
+/* 淡入淡出 */
+.fade-enter-active {
+  animation: fade-in var(--duration-base) var(--ease-out);
+}
+
+.fade-leave-active {
+  animation: fade-out var(--duration-base) var(--ease-in);
+}
+
+/* 滑动 */
+.slide-enter-active {
+  animation: slide-in-right var(--duration-base) var(--ease-out);
+}
+
+.slide-leave-active {
+  animation: slide-in-right var(--duration-base) var(--ease-in) reverse;
+}
+
+/* 缩放 */
+.zoom-enter-active {
+  animation: scale-in var(--duration-base) var(--ease-bounce);
+}
+
+.zoom-leave-active {
+  animation: scale-out var(--duration-base) var(--ease-in);
+}
+

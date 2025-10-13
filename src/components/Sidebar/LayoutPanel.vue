@@ -1,24 +1,50 @@
 <template>
   <div class="layout-panel">
-    <!-- 布局选择器 -->
+    <!-- 分类Tab -->
     <div class="tool-section">
       <div class="section-header">
         <Icon name="grid" size="sm" />
         <h3 class="section-title">选择布局</h3>
       </div>
+      
+      <div class="category-tabs">
+        <button
+          v-for="category in categories"
+          :key="category.value"
+          class="category-tab"
+          :class="{ active: activeCategory === category.value }"
+          @click="activeCategory = category.value"
+        >
+          {{ category.label }}
+        </button>
+      </div>
+    </div>
+    
+    <!-- 布局选择器 -->
+    <div class="tool-section">
       <div class="layout-grid">
         <div
-          v-for="layout in layouts"
-          :key="layout.type"
+          v-for="layout in filteredLayouts"
+          :key="layout.id"
           class="layout-item hover-lift"
-          :class="{ active: store.layoutType === layout.type }"
-          @click="selectLayout(layout.type)"
+          :class="{ active: store.layoutType === layout.id }"
+          @click="selectLayout(layout.id)"
         >
-          <div :class="`layout-preview grid-${layout.type}`">
-            <div v-for="i in layout.type" :key="i" class="layout-cell"></div>
+          <!-- 使用新的布局预览组件 -->
+          <LayoutPreview
+            :cells="layout.cells"
+            :active="store.layoutType === layout.id"
+          />
+          
+          <!-- 布局名称 -->
+          <div class="layout-info">
+            <span class="layout-name">{{ layout.name }}</span>
+            <span class="layout-count">{{ layout.imageCount }}图</span>
           </div>
+          
+          <!-- 选中标记 -->
           <Transition name="scale">
-            <div v-if="store.layoutType === layout.type" class="layout-check">
+            <div v-if="store.layoutType === layout.id" class="layout-check">
               <Icon name="check" size="sm" />
             </div>
           </Transition>
@@ -85,23 +111,32 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import Icon from '@/components/Common/Icon.vue'
-import type { LayoutType } from '@/core/models'
+import LayoutPreview from '@/components/Common/LayoutPreview.vue'
+import { LAYOUT_TEMPLATES, LayoutCategory } from '@/core/models'
 
 const store = useAppStore()
 
-/** 布局选项 */
-const layouts: Array<{ type: LayoutType }> = [
-  { type: 1 },
-  { type: 2 },
-  { type: 3 },
-  { type: 4 }
+/** 分类配置 */
+const categories = [
+  { value: LayoutCategory.Grid, label: '基础网格' },
+  { value: LayoutCategory.Creative, label: '创意组合' },
+  { value: LayoutCategory.Social, label: '社交媒体' }
 ]
 
+/** 当前选中的分类 */
+const activeCategory = ref<LayoutCategory>(LayoutCategory.Grid)
+
+/** 过滤后的布局列表 */
+const filteredLayouts = computed(() => {
+  return LAYOUT_TEMPLATES.filter(layout => layout.category === activeCategory.value)
+})
+
 /** 选择布局 */
-function selectLayout(type: LayoutType) {
-  store.setLayoutType(type)
+function selectLayout(id: string) {
+  store.setLayoutType(id)
 }
 
 /** 间距变化 */
@@ -151,25 +186,79 @@ function onRadiusChange(e: Event) {
   font-weight: var(--font-weight-semibold);
 }
 
+/* 分类Tab */
+.category-tabs {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.category-tab {
+  flex: 1;
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-neutral-0);
+  border: 2px solid var(--border-color-base);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-600);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.category-tab:hover {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-600);
+}
+
+.category-tab.active {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  font-weight: var(--font-weight-semibold);
+}
+
 /* 布局网格 */
 .layout-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-3);
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: var(--spacing-2);
+}
+
+/* 自定义滚动条 */
+.layout-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.layout-grid::-webkit-scrollbar-track {
+  background: var(--color-neutral-100);
+  border-radius: var(--radius-full);
+}
+
+.layout-grid::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: var(--radius-full);
+}
+
+.layout-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-400);
 }
 
 .layout-item {
   position: relative;
   aspect-ratio: 1;
-  padding: var(--spacing-4);
+  padding: var(--spacing-3);
   background: var(--color-neutral-0);
   border: 2px solid var(--border-color-base);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: var(--transition-base);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--spacing-2);
 }
 
 .layout-item:hover {
@@ -183,47 +272,31 @@ function onRadiusChange(e: Event) {
   box-shadow: var(--shadow-primary);
 }
 
-.layout-preview {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  gap: 3px;
-  transition: var(--transition-transform);
+/* 布局信息 */
+.layout-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-600);
 }
 
-.layout-item:hover .layout-preview {
-  transform: scale(1.05);
+.layout-name {
+  font-weight: var(--font-weight-medium);
 }
 
-.layout-preview.grid-1 {
-  grid-template-columns: 1fr;
+.layout-count {
+  color: var(--color-neutral-500);
+  font-family: var(--font-family-mono);
 }
 
-.layout-preview.grid-2 {
-  grid-template-columns: 1fr 1fr;
+.layout-item.active .layout-info {
+  color: var(--color-primary-700);
 }
 
-.layout-preview.grid-3 {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.layout-preview.grid-4 {
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-}
-
-.layout-cell {
-  background: var(--color-neutral-300);
-  border-radius: var(--radius-sm);
-  transition: var(--transition-fast);
-}
-
-.layout-item.active .layout-cell {
-  background: var(--color-primary-400);
-}
-
-.layout-item:hover .layout-cell {
-  background: var(--color-primary-300);
+.layout-item.active .layout-count {
+  color: var(--color-primary-600);
 }
 
 /* 选中标记 */
@@ -286,4 +359,3 @@ function onRadiusChange(e: Event) {
   animation: scale-out var(--duration-fast) var(--ease-in);
 }
 </style>
-

@@ -8,7 +8,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
   type LayoutConfig,
-  type LayoutType,
   type ImageElement,
   type TextElement,
   type CanvasState,
@@ -16,7 +15,7 @@ import {
   type BackgroundConfig,
   type OpacityConfig,
   createLayoutConfig,
-  LAYOUT_TEMPLATES
+  getLayoutById
 } from '@/core/models'
 
 /**
@@ -28,7 +27,7 @@ export const useAppStore = defineStore('app', () => {
   // ============================================================================
   
   /** 布局类型 */
-  const layoutType = ref<LayoutType>(1)
+  const layoutType = ref<string>('grid-1x1')
   
   /** 图片间距 */
   const spacing = ref(10)
@@ -105,7 +104,10 @@ export const useAppStore = defineStore('app', () => {
   }))
   
   /** 布局单元格数量 */
-  const layoutCellCount = computed(() => LAYOUT_TEMPLATES[layoutType.value].length)
+  const layoutCellCount = computed(() => {
+    const template = getLayoutById(layoutType.value)
+    return template ? template.cells.length : 0
+  })
   
   /** 是否有图片 */
   const hasImages = computed(() => images.value.length > 0)
@@ -120,7 +122,7 @@ export const useAppStore = defineStore('app', () => {
   /**
    * 设置布局类型
    */
-  function setLayoutType(type: LayoutType) {
+  function setLayoutType(type: string) {
     layoutType.value = type
   }
   
@@ -317,7 +319,7 @@ export const useAppStore = defineStore('app', () => {
    * 重置为初始状态
    */
   function reset() {
-    layoutType.value = 1
+    layoutType.value = 'grid-1x1'
     spacing.value = 10
     padding.value = 0
     radius.value = 0

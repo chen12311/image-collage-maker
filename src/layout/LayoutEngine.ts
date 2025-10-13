@@ -4,7 +4,8 @@
  * 基于demo中的布局计算逻辑，计算每个图片单元格的实际像素位置和尺寸
  */
 
-import type { LayoutConfig, Cell } from '@/core/models'
+import type { LayoutConfig, Cell, LayoutTemplate, LayoutCategory } from '@/core/models'
+import { getLayoutById, getLayoutsByCategory, searchLayouts } from '@/core/models'
 
 /**
  * 计算后的单元格信息
@@ -158,4 +159,19 @@ export function computeLayout(
 ): LayoutResult {
   return LayoutEngine.compute(config, canvasWidth, canvasHeight)
 }
+
+/**
+ * 根据ID获取布局模板（重新导出）
+ */
+export { getLayoutById }
+
+/**
+ * 根据分类获取布局模板列表（重新导出）
+ */
+export { getLayoutsByCategory }
+
+/**
+ * 搜索布局模板（重新导出）
+ */
+export { searchLayouts }
 

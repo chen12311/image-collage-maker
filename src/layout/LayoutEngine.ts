@@ -4,7 +4,7 @@
  * 基于demo中的布局计算逻辑，计算每个图片单元格的实际像素位置和尺寸
  */
 
-import type { LayoutConfig, Cell, LayoutTemplate, LayoutCategory } from '@/core/models'
+import type { LayoutConfig, Cell } from '@/core/models'
 import { getLayoutById, getLayoutsByCategory, searchLayouts } from '@/core/models'
 
 /**

@@ -5,11 +5,6 @@
  */
 
 /**
- * 布局类型 - 使用字符串标识符
- */
-export type LayoutType = string
-
-/**
  * 单元格定义
  * [x, y, width, height] - 归一化坐标（0-1范围）
  */
@@ -1498,15 +1493,4 @@ export function createLayoutConfig(
  */
 export function getLayoutById(id: string): LayoutTemplate | undefined {
   return LAYOUT_MAP.get(id)
-}
-
-/**
- * 搜索布局模板
- */
-export function searchLayouts(keyword: string): LayoutTemplate[] {
-  const lowerKeyword = keyword.toLowerCase()
-  return LAYOUT_TEMPLATES.filter(template => 
-    template.name.toLowerCase().includes(lowerKeyword) ||
-    template.tags.some(tag => tag.toLowerCase().includes(lowerKeyword))
-  )
 }

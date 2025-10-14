@@ -5,7 +5,6 @@
  */
 
 import type { LayoutConfig, Cell } from '@/core/models'
-import { getLayoutById, searchLayouts } from '@/core/models'
 
 /**
  * 计算后的单元格信息
@@ -159,14 +158,4 @@ export function computeLayout(
 ): LayoutResult {
   return LayoutEngine.compute(config, canvasWidth, canvasHeight)
 }
-
-/**
- * 根据ID获取布局模板（重新导出）
- */
-export { getLayoutById }
-
-/**
- * 搜索布局模板（重新导出）
- */
-export { searchLayouts }
 

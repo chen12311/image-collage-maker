@@ -5,7 +5,7 @@
  */
 
 import type { LayoutConfig, Cell } from '@/core/models'
-import { getLayoutById, getLayoutsByCategory, searchLayouts } from '@/core/models'
+import { getLayoutById, searchLayouts } from '@/core/models'
 
 /**
  * 计算后的单元格信息
@@ -164,11 +164,6 @@ export function computeLayout(
  * 根据ID获取布局模板（重新导出）
  */
 export { getLayoutById }
-
-/**
- * 根据分类获取布局模板列表（重新导出）
- */
-export { getLayoutsByCategory }
 
 /**
  * 搜索布局模板（重新导出）

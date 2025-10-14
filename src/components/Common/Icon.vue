@@ -196,6 +196,29 @@ const iconComponents: Record<string, any> = {
       h('path', { d: 'M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3' }),
       h('line', { x1: '12', y1: '17', x2: '12.01', y2: '17' })
     ])
+  }),
+  
+  'flip-horizontal': defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('path', { d: 'M12 3v18' }),
+      h('path', { d: 'M8 7L4 12l4 5' }),
+      h('path', { d: 'M16 7l4 5-4 5' })
+    ])
+  }),
+  
+  'flip-vertical': defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('path', { d: 'M3 12h18' }),
+      h('path', { d: 'M7 8l5-4 5 4' }),
+      h('path', { d: 'M7 16l5 4 5-4' })
+    ])
+  }),
+  
+  'rotate-cw': defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('polyline', { points: '23 4 23 10 17 10' }),
+      h('path', { d: 'M20.49 15a9 9 0 1 1-2.12-9.36L23 10' })
+    ])
   })
 }
 

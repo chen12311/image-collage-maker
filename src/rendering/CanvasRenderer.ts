@@ -122,6 +122,7 @@ export class CanvasRenderer {
   ): void {
     const { layout, opacity } = state
     const { x, y, width, height } = cell
+    const { transform } = image
     
     ctx.save()
     
@@ -134,22 +135,65 @@ export class CanvasRenderer {
       ctx.clip()
     }
     
-    // 计算cover模式的绘制参数
-    const drawInfo = this.calculateCoverDraw(image, cell)
-    
-    // 绘制图片（使用裁剪方式以支持cover模式）
-    if (drawInfo) {
-      ctx.drawImage(
-        image.image,
-        drawInfo.sx,
-        drawInfo.sy,
-        drawInfo.sw,
-        drawInfo.sh,
-        drawInfo.dx,
-        drawInfo.dy,
-        drawInfo.dw,
-        drawInfo.dh
-      )
+    // 应用图片变换（翻转和旋转）
+    if (transform.rotation !== 0 || transform.flipH || transform.flipV) {
+      // 移动到单元格中心
+      ctx.translate(x + width / 2, y + height / 2)
+      
+      // 应用旋转
+      if (transform.rotation !== 0) {
+        ctx.rotate((transform.rotation * Math.PI) / 180)
+      }
+      
+      // 应用翻转
+      const scaleX = transform.flipH ? -1 : 1
+      const scaleY = transform.flipV ? -1 : 1
+      if (scaleX !== 1 || scaleY !== 1) {
+        ctx.scale(scaleX, scaleY)
+      }
+      
+      // 移回原点
+      ctx.translate(-width / 2, -height / 2)
+      
+      // 计算cover模式的绘制参数（相对于变换后的坐标系）
+      const drawInfo = this.calculateCoverDraw(image, {
+        ...cell,
+        x: 0,
+        y: 0
+      })
+      
+      // 绘制图片
+      if (drawInfo) {
+        ctx.drawImage(
+          image.image,
+          drawInfo.sx,
+          drawInfo.sy,
+          drawInfo.sw,
+          drawInfo.sh,
+          drawInfo.dx,
+          drawInfo.dy,
+          drawInfo.dw,
+          drawInfo.dh
+        )
+      }
+    } else {
+      // 无变换，正常绘制
+      const drawInfo = this.calculateCoverDraw(image, cell)
+      
+      // 绘制图片（使用裁剪方式以支持cover模式）
+      if (drawInfo) {
+        ctx.drawImage(
+          image.image,
+          drawInfo.sx,
+          drawInfo.sy,
+          drawInfo.sw,
+          drawInfo.sh,
+          drawInfo.dx,
+          drawInfo.dy,
+          drawInfo.dw,
+          drawInfo.dh
+        )
+      }
     }
     
     ctx.restore()

@@ -252,6 +252,36 @@ export const useAppStore = defineStore('app', () => {
     }))
   }
   
+  /**
+   * 水平翻转图片
+   */
+  function flipImageHorizontal(id: string) {
+    const image = images.value.find(img => img.id === id)
+    if (image) {
+      image.transform.flipH = !image.transform.flipH
+    }
+  }
+  
+  /**
+   * 垂直翻转图片
+   */
+  function flipImageVertical(id: string) {
+    const image = images.value.find(img => img.id === id)
+    if (image) {
+      image.transform.flipV = !image.transform.flipV
+    }
+  }
+  
+  /**
+   * 旋转图片（顺时针90度）
+   */
+  function rotateImage(id: string) {
+    const image = images.value.find(img => img.id === id)
+    if (image) {
+      image.transform.rotation = ((image.transform.rotation + 90) % 360) as 0 | 90 | 180 | 270
+    }
+  }
+  
   // ============================================================================
   // 文字操作
   // ============================================================================
@@ -396,6 +426,9 @@ export const useAppStore = defineStore('app', () => {
     removeImage,
     clearImages,
     reorderImages,
+    flipImageHorizontal,
+    flipImageVertical,
+    rotateImage,
     addText,
     updateText,
     removeText,

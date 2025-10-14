@@ -57,6 +57,7 @@
     <div class="canvas-container checkerboard">
       <div class="canvas-wrapper">
         <CanvasRenderer ref="canvasRenderer" />
+        <CanvasInteractionLayer />
       </div>
     </div>
   </div>
@@ -66,6 +67,7 @@
 import { ref } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import CanvasRenderer from './CanvasRenderer.vue'
+import CanvasInteractionLayer from './CanvasInteractionLayer.vue'
 import Button from '@/components/Common/Button.vue'
 import Tooltip from '@/components/Common/Tooltip.vue'
 import { toast } from '@/composables/useToast'
@@ -249,6 +251,7 @@ registerShortcut({
 }
 
 .canvas-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;

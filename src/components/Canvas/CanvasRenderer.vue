@@ -103,8 +103,8 @@ watch(
     store.imageOpacity,
     store.canvasWidth,
     store.canvasHeight,
-    store.images.length,
-    store.texts.length
+    store.images,
+    store.texts
   ],
   () => {
     nextTick(() => render())

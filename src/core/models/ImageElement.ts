@@ -5,6 +5,20 @@
  */
 
 /**
+ * 图片变换配置
+ */
+export interface ImageTransform {
+  /** 水平翻转 */
+  flipH: boolean
+  
+  /** 垂直翻转 */
+  flipV: boolean
+  
+  /** 旋转角度 */
+  rotation: 0 | 90 | 180 | 270
+}
+
+/**
  * 图片元素接口
  */
 export interface ImageElement {
@@ -34,6 +48,9 @@ export interface ImageElement {
   
   /** 在布局中的索引位置 */
   index: number
+  
+  /** 图片变换状态 */
+  transform: ImageTransform
 }
 
 /**
@@ -61,7 +78,12 @@ export async function createImageElement(
           fileName: file.name,
           fileSize: file.size,
           timestamp: Date.now(),
-          index
+          index,
+          transform: {
+            flipH: false,
+            flipV: false,
+            rotation: 0
+          }
         })
       }
       

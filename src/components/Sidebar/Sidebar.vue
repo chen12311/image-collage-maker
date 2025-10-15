@@ -22,6 +22,7 @@
         <ImagePanel v-else-if="activeTab === 'image'" key="image" />
         <TextPanel v-else-if="activeTab === 'text'" key="text" />
         <BackgroundPanel v-else-if="activeTab === 'background'" key="background" />
+        <SettingsPanel v-else-if="activeTab === 'settings'" key="settings" />
       </Transition>
     </div>
   </div>
@@ -34,6 +35,7 @@ import LayoutPanel from './LayoutPanel.vue'
 import ImagePanel from './ImagePanel.vue'
 import TextPanel from './TextPanel.vue'
 import BackgroundPanel from './BackgroundPanel.vue'
+import SettingsPanel from './SettingsPanel.vue'
 
 /** 标签页配置 */
 interface Tab {
@@ -47,7 +49,8 @@ const tabs: Tab[] = [
   { id: 'layout', label: '布局', icon: 'layout' },
   { id: 'image', label: '图片', icon: 'image' },
   { id: 'text', label: '文字', icon: 'text' },
-  { id: 'background', label: '背景', icon: 'background' }
+  { id: 'background', label: '背景', icon: 'background' },
+  { id: 'settings', label: '设置', icon: 'settings' }
 ]
 
 /** 当前激活的标签页 */

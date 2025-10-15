@@ -71,7 +71,6 @@ export function useResponsive() {
  * 侧边栏折叠状态管理
  */
 const sidebarCollapsed = ref(false)
-const propertiesCollapsed = ref(false)
 
 /**
  * useSidebar组合式函数
@@ -84,16 +83,10 @@ export function useSidebar() {
     sidebarCollapsed.value = !sidebarCollapsed.value
   }
 
-  /** 切换属性面板 */
-  function toggleProperties() {
-    propertiesCollapsed.value = !propertiesCollapsed.value
-  }
-
   /** 根据屏幕尺寸自动调整 */
   function autoAdjust() {
     if (isSmallScreen.value) {
       sidebarCollapsed.value = true
-      propertiesCollapsed.value = true
     }
   }
 
@@ -103,9 +96,7 @@ export function useSidebar() {
 
   return {
     sidebarCollapsed,
-    propertiesCollapsed,
     toggleSidebar,
-    toggleProperties,
     autoAdjust
   }
 }

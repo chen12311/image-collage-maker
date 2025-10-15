@@ -12,6 +12,16 @@
         </h1>
       </div>
       <div class="header-right">
+        <Tooltip content="撤销" placement="bottom" shortcut="Ctrl+Z">
+          <button class="header-btn" :disabled="!historyManager.canUndo" @click="undo">
+            <Icon name="undo" size="md" />
+          </button>
+        </Tooltip>
+        <Tooltip content="重做" placement="bottom" shortcut="Ctrl+Y">
+          <button class="header-btn" :disabled="!historyManager.canRedo" @click="redo">
+            <Icon name="redo" size="md" />
+          </button>
+        </Tooltip>
         <Tooltip content="快捷键帮助" placement="bottom" shortcut="?">
           <button class="header-btn" @click="helpVisible = !helpVisible">
             <Icon name="help" size="md" />
@@ -31,14 +41,6 @@
       <main class="app-canvas">
         <CanvasArea />
       </main>
-      
-      <!-- 右侧属性栏 -->
-      <aside :class="['app-properties', { collapsed: propertiesCollapsed }]">
-        <div class="properties-toggle" @click="toggleProperties">
-          <Icon :name="propertiesCollapsed ? 'chevron-left' : 'chevron-right'" size="sm" />
-        </div>
-        <Properties />
-      </aside>
     </div>
 
     <!-- Toast通知 -->
@@ -99,18 +101,42 @@
 import { ref } from 'vue'
 import Sidebar from './components/Sidebar/Sidebar.vue'
 import CanvasArea from './components/Canvas/CanvasArea.vue'
-import Properties from './components/Properties/Properties.vue'
 import Toast from './components/Common/Toast.vue'
 import Icon from './components/Common/Icon.vue'
 import Tooltip from './components/Common/Tooltip.vue'
+import Button from './components/Common/Button.vue'
 import { useSidebar } from './composables/useResponsive'
 import { useKeyboard, SHORTCUTS } from './composables/useKeyboard'
 import { useAppStore } from './store/useAppStore'
+import { createHistoryManager } from './history/HistoryManager'
+import { toast } from './composables/useToast'
+import { onMounted, watch } from 'vue'
 
 const store = useAppStore()
-const { sidebarCollapsed, propertiesCollapsed, toggleSidebar, toggleProperties } = useSidebar()
+const { sidebarCollapsed, toggleSidebar } = useSidebar()
 const { registerShortcut } = useKeyboard()
 const helpVisible = ref(false)
+
+/** 历史管理器 */
+const historyManager = createHistoryManager()
+
+/** 撤销 */
+function undo() {
+  const state = historyManager.undo()
+  if (state) {
+    store.restoreState(state)
+    toast.info('已撤销')
+  }
+}
+
+/** 重做 */
+function redo() {
+  const state = historyManager.redo()
+  if (state) {
+    store.restoreState(state)
+    toast.info('已重做')
+  }
+}
 
 // 注册全局快捷键
 registerShortcut({
@@ -136,6 +162,31 @@ registerShortcut({
 registerShortcut({
   ...SHORTCUTS.LAYOUT_4,
   handler: () => store.setLayoutType(4)
+})
+
+registerShortcut({
+  ...SHORTCUTS.UNDO,
+  handler: () => undo()
+})
+
+registerShortcut({
+  ...SHORTCUTS.REDO,
+  handler: () => redo()
+})
+
+/** 监听状态变化，记录历史 */
+watch(
+  () => store.currentState,
+  (newState) => {
+    historyManager.push(newState)
+  },
+  { deep: true }
+)
+
+/** 组件挂载 */
+onMounted(() => {
+  // 记录初始状态
+  historyManager.push(store.currentState)
 })
 </script>
 
@@ -223,6 +274,16 @@ registerShortcut({
   color: var(--color-primary-500);
 }
 
+.header-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.header-btn:disabled:hover {
+  background: transparent;
+  color: var(--color-neutral-600);
+}
+
 /* 主内容区 */
 .app-main {
   display: flex;
@@ -253,48 +314,6 @@ registerShortcut({
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-/* 属性面板 */
-.app-properties {
-  position: relative;
-  width: var(--properties-width);
-  flex-shrink: 0;
-  background: var(--color-neutral-0);
-  border-left: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition-base);
-  overflow: hidden;
-}
-
-.app-properties.collapsed {
-  width: 0;
-  border-left: none;
-}
-
-.properties-toggle {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  transform: translate(-50%, -50%);
-  width: 24px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-neutral-0);
-  border: 1px solid var(--border-color-light);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  z-index: 10;
-}
-
-.properties-toggle:hover {
-  background: var(--color-primary-50);
-  border-color: var(--color-primary-500);
-  color: var(--color-primary-500);
 }
 
 /* 快捷键帮助 */
@@ -435,18 +454,6 @@ registerShortcut({
 @media (max-width: 768px) {
   .app-title {
     font-size: var(--font-size-base);
-  }
-  
-  .app-properties {
-    position: absolute;
-    right: 0;
-    top: var(--header-height);
-    bottom: 0;
-    z-index: var(--z-index-dropdown);
-  }
-  
-  .app-properties.collapsed {
-    right: calc(-1 * var(--properties-width));
   }
 }
 </style>

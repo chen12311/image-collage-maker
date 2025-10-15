@@ -1,29 +1,32 @@
 <template>
   <div class="interaction-layer" ref="layerRef" :style="layerStyle">
-    <!-- 为每个图片创建交互热区 -->
+    <!-- 交互热区（只负责鼠标事件，不包含控件） -->
     <div
       v-for="(cell, index) in computedCells"
-      :key="images[index]?.id || `cell-${index}`"
+      :key="`zone-${index}`"
       class="interaction-zone"
       :style="getZoneStyle(cell)"
       @mouseenter="handleMouseEnter(index)"
       @mouseleave="handleMouseLeave(index)"
-    >
-      <!-- 悬浮时显示控制按钮 -->
-      <Transition name="controls-fade">
-        <ImageControls
-          v-if="hoveredIndex === index && images[index]"
-          :x="cell.x"
-          :y="cell.y"
-          :width="cell.width"
-          :height="cell.height"
-          @flip-horizontal="handleFlipHorizontal(images[index].id)"
-          @flip-vertical="handleFlipVertical(images[index].id)"
-          @rotate="handleRotate(images[index].id)"
-          @delete="handleDelete(images[index].id)"
-        />
-      </Transition>
-    </div>
+    />
+    
+    <!-- 全局控件（只有一个实例，根据 hoveredIndex 动态定位） -->
+    <Transition name="controls-fade">
+      <ImageControls
+        v-if="hoveredIndex !== null && images[hoveredIndex] && computedCells[hoveredIndex]"
+        :key="`controls-${hoveredIndex}`"
+        :x="computedCells[hoveredIndex].x"
+        :y="computedCells[hoveredIndex].y"
+        :width="computedCells[hoveredIndex].width"
+        :height="computedCells[hoveredIndex].height"
+        @mouseenter="handleControlsEnter"
+        @mouseleave="handleControlsLeave"
+        @flip-horizontal="handleFlipHorizontal(images[hoveredIndex].id)"
+        @flip-vertical="handleFlipVertical(images[hoveredIndex].id)"
+        @rotate="handleRotate(images[hoveredIndex].id)"
+        @delete="handleDelete(images[hoveredIndex].id)"
+      />
+    </Transition>
   </div>
 </template>
 
@@ -37,6 +40,9 @@ import { toast } from '@/composables/useToast'
 const store = useAppStore()
 const layerRef = ref<HTMLDivElement>()
 const hoveredIndex = ref<number | null>(null)
+
+/** 延迟隐藏控件的计时器 */
+let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 计算所有单元格的位置 */
 const computedCells = computed(() => {
@@ -67,8 +73,19 @@ function getZoneStyle(cell: { x: number; y: number; width: number; height: numbe
   }
 }
 
+/** 清除延迟隐藏计时器 */
+function clearHideTimer() {
+  if (hideTimer !== null) {
+    clearTimeout(hideTimer)
+    hideTimer = null
+  }
+}
+
 /** 鼠标进入热区 */
 function handleMouseEnter(index: number) {
+  // 清除待处理的隐藏操作
+  clearHideTimer()
+  
   // 只有当该位置有图片时才显示控制按钮
   if (images.value[index]) {
     hoveredIndex.value = index
@@ -78,8 +95,29 @@ function handleMouseEnter(index: number) {
 /** 鼠标离开热区 */
 function handleMouseLeave(index: number) {
   if (hoveredIndex.value === index) {
-    hoveredIndex.value = null
+    // 延迟隐藏，给鼠标移动到控件上的时间
+    clearHideTimer()
+    hideTimer = setTimeout(() => {
+      if (hoveredIndex.value === index) {
+        hoveredIndex.value = null
+      }
+    }, 100) // 100ms 延迟
   }
+}
+
+/** 鼠标进入控件 */
+function handleControlsEnter() {
+  // 取消待处理的隐藏操作
+  clearHideTimer()
+}
+
+/** 鼠标离开控件 */
+function handleControlsLeave() {
+  // 延迟隐藏控件
+  clearHideTimer()
+  hideTimer = setTimeout(() => {
+    hoveredIndex.value = null
+  }, 100) // 100ms 延迟
 }
 
 /** 水平翻转 */

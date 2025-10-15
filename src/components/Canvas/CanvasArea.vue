@@ -356,8 +356,7 @@ registerShortcut({
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-xl);
-  border-radius: var(--radius-sm);
+  /* 移除阴影和圆角，让棋盘格清晰显示 */
   overflow: hidden;
   animation: fade-in var(--duration-base) var(--ease-out);
 }

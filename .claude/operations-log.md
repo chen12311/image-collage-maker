@@ -72,19 +72,55 @@ const globalOpacity = ref(DEFAULT_OPACITY_CONFIG.global)
 const imageOpacity = ref(DEFAULT_OPACITY_CONFIG.image)
 ```
 
-#### 6.3 验证测试（Playwright MCP）
+#### 6.3 第三阶段：移除画布阴影遮罩
+**用户反馈**: "canvas-wrapper 这个 class 为什么还有一个类似透明遮罩的东西"
+
+**问题诊断（使用 Playwright MCP）**:
+- ✅ 使用 `evaluate` 检查发现 `.canvas-wrapper` 有 `box-shadow: var(--shadow-xl)`
+- ✅ 还有 `border-radius: var(--radius-sm)` 产生圆角效果
+- ✅ 这两个样式产生了"透明遮罩"的视觉效果
+
+**解决方案 - 移除阴影和圆角**:
+- **文件**: `src/components/Canvas/CanvasArea.vue`
+- ✅ 删除 `.canvas-wrapper` 的 `box-shadow` 和 `border-radius`
+- ✅ 保留必要的布局样式，让棋盘格清晰显示
+
+```css
+.canvas-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 移除阴影和圆角，让棋盘格清晰显示 */
+  overflow: hidden;
+  animation: fade-in var(--duration-base) var(--ease-out);
+}
+```
+
+#### 6.4 验证测试（Playwright MCP）
 **测试步骤**:
 1. ✅ 清除 localStorage 缓存
 2. ✅ 刷新页面，验证默认效果
 3. ✅ 截图确认整个画布区域都是棋盘格
 4. ✅ 点击背景面板的"透明"按钮，验证交互功能
+5. ✅ 验证阴影效果已完全移除
 
 **测试结果**:
 - ✅ 画布容器外围区域：棋盘格背景 ✓
 - ✅ 画布中间区域：棋盘格背景（原白色区域已删除）✓
+- ✅ 画布边缘：无阴影遮罩，无圆角效果 ✓
 - ✅ 默认状态：自动透明，无需手动设置 ✓
 - ✅ 背景面板：透明预设按钮正常工作 ✓
 - ✅ 用户可自由切换：纯白、浅灰、透明、深色 ✓
+
+**CSS 验证**:
+```javascript
+// canvas-wrapper 样式检查
+{
+  boxShadow: "none",        // ✓ 无阴影
+  borderRadius: "0px"       // ✓ 无圆角
+}
+```
 
 **效果说明**:
 - 🎨 提供专业的透明区域展示效果
@@ -92,6 +128,7 @@ const imageOpacity = ref(DEFAULT_OPACITY_CONFIG.image)
 - ✨ 与 Photoshop、Figma 等设计工具的体验一致
 - 🔄 默认透明，用户可按需切换背景色
 - 📤 导出 PNG 时保留透明度
+- ✨ 无阴影遮罩，视觉更清晰
 
 ---
 

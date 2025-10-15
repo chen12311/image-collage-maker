@@ -128,3 +128,38 @@ export function updateTextStyle(
   }
 }
 
+/**
+ * 计算文字渲染尺寸（用于边界检测和拖拽）
+ */
+export function measureTextSize(
+  text: TextElement,
+  ctx?: CanvasRenderingContext2D
+): { width: number; height: number } {
+  // 如果提供了canvas上下文，使用精确测量
+  if (ctx) {
+    ctx.save()
+    ctx.font = `${text.style.fontWeight} ${text.style.fontSize}px ${text.style.fontFamily}`
+    const metrics = ctx.measureText(text.content)
+    ctx.restore()
+    
+    // 计算实际渲染高度（基于字体大小）
+    const height = text.style.fontSize * 1.2 // 行高系数
+    
+    return {
+      width: metrics.width,
+      height: height
+    }
+  }
+  
+  // 后备方案：基于字体大小估算
+  // 平均字符宽度约为字体大小的0.6倍（英文），中文约为1倍
+  const avgCharWidth = text.style.fontSize * 0.8
+  const estimatedWidth = text.content.length * avgCharWidth
+  const estimatedHeight = text.style.fontSize * 1.2
+  
+  return {
+    width: estimatedWidth,
+    height: estimatedHeight
+  }
+}
+

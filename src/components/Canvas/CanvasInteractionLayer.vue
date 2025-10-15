@@ -57,10 +57,11 @@ const computedCells = computed(() => {
 /** 图片列表 */
 const images = computed(() => store.images)
 
-/** 交互层样式（与画布尺寸精确匹配） */
+/** 交互层样式（与画布尺寸和缩放精确匹配） */
 const layerStyle = computed(() => ({
   width: `${store.canvasWidth}px`,
-  height: `${store.canvasHeight}px`
+  height: `${store.canvasHeight}px`,
+  transform: `translate(-50%, -50%) scale(${store.canvasScale})`
 }))
 
 /** 获取热区样式 */
@@ -152,8 +153,9 @@ function handleDelete(id: string) {
 <style scoped>
 .interaction-layer {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
   pointer-events: none;
   z-index: 5;
 }

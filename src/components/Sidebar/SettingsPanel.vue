@@ -151,5 +151,17 @@ function resetAll() {
   height: 1px;
   background: var(--border-color-light);
 }
+
+/* 淡入淡出动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all var(--duration-fast) var(--ease-in-out);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
 </style>
 

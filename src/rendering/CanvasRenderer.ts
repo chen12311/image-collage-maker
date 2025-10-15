@@ -360,7 +360,7 @@ export class CanvasRenderer {
    */
   static toDataURL(
     canvas: HTMLCanvasElement,
-    format: 'image/png' | 'image/jpeg' = 'image/png',
+    format: 'image/png' | 'image/jpeg' | 'image/webp' = 'image/png',
     quality: number = 1.0
   ): string {
     return canvas.toDataURL(format, quality)
@@ -371,7 +371,7 @@ export class CanvasRenderer {
    */
   static toBlob(
     canvas: HTMLCanvasElement,
-    format: 'image/png' | 'image/jpeg' = 'image/png',
+    format: 'image/png' | 'image/jpeg' | 'image/webp' = 'image/png',
     quality: number = 1.0
   ): Promise<Blob | null> {
     return new Promise((resolve) => {

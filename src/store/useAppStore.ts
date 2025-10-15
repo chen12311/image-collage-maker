@@ -15,7 +15,9 @@ import {
   type BackgroundConfig,
   type OpacityConfig,
   createLayoutConfig,
-  getLayoutById
+  getLayoutById,
+  DEFAULT_BACKGROUND_CONFIG,
+  DEFAULT_OPACITY_CONFIG
 } from '@/core/models'
 
 /**
@@ -39,16 +41,16 @@ export const useAppStore = defineStore('app', () => {
   const radius = ref(0)
   
   /** 背景颜色 */
-  const bgColor = ref('#ffffff')
+  const bgColor = ref(DEFAULT_BACKGROUND_CONFIG.color)
   
   /** 背景透明度 */
-  const bgOpacity = ref(100)
+  const bgOpacity = ref(DEFAULT_BACKGROUND_CONFIG.opacity)
   
   /** 全局透明度 */
-  const globalOpacity = ref(100)
+  const globalOpacity = ref(DEFAULT_OPACITY_CONFIG.global)
   
   /** 图片透明度 */
-  const imageOpacity = ref(100)
+  const imageOpacity = ref(DEFAULT_OPACITY_CONFIG.image)
   
   /** 画布宽度 */
   const canvasWidth = ref(800)
@@ -61,6 +63,12 @@ export const useAppStore = defineStore('app', () => {
   
   /** 文字列表 */
   const texts = ref<TextElement[]>([])
+  
+  /** 导出格式 */
+  const exportFormat = ref<'png' | 'jpeg' | 'webp'>('png')
+  
+  /** 画布缩放比例（1 = 100%） */
+  const canvasScale = ref(1)
   
   // ============================================================================
   // 计算属性
@@ -114,6 +122,9 @@ export const useAppStore = defineStore('app', () => {
   
   /** 是否有文字 */
   const hasTexts = computed(() => texts.value.length > 0)
+  
+  /** 画布缩放百分比 */
+  const canvasScalePercent = computed(() => Math.round(canvasScale.value * 100))
   
   // ============================================================================
   // 布局操作
@@ -201,6 +212,24 @@ export const useAppStore = defineStore('app', () => {
    */
   function setImageOpacity(value: number) {
     imageOpacity.value = Math.max(0, Math.min(100, value))
+  }
+  
+  // ============================================================================
+  // 导出配置
+  // ============================================================================
+  
+  /**
+   * 设置导出格式
+   */
+  function setExportFormat(format: 'png' | 'jpeg' | 'webp') {
+    exportFormat.value = format
+  }
+  
+  /**
+   * 设置画布缩放比例
+   */
+  function setCanvasScale(scale: number) {
+    canvasScale.value = Math.max(0.1, Math.min(1, scale))
   }
   
   // ============================================================================
@@ -399,6 +428,8 @@ export const useAppStore = defineStore('app', () => {
     canvasHeight,
     images,
     texts,
+    exportFormat,
+    canvasScale,
     
     // 计算属性
     layoutConfig,
@@ -409,6 +440,7 @@ export const useAppStore = defineStore('app', () => {
     layoutCellCount,
     hasImages,
     hasTexts,
+    canvasScalePercent,
     
     // 方法
     setLayoutType,
@@ -421,6 +453,8 @@ export const useAppStore = defineStore('app', () => {
     setBgOpacity,
     setGlobalOpacity,
     setImageOpacity,
+    setExportFormat,
+    setCanvasScale,
     addImage,
     addImages,
     removeImage,

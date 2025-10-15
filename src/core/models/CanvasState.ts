@@ -75,10 +75,11 @@ export const DEFAULT_CANVAS_SIZE: CanvasSize = {
 
 /**
  * 默认背景配置
+ * 默认透明，显示棋盘格背景
  */
 export const DEFAULT_BACKGROUND_CONFIG: BackgroundConfig = {
   color: '#ffffff',
-  opacity: 100
+  opacity: 0
 }
 
 /**

@@ -4,18 +4,11 @@
     <div class="canvas-toolbar">
       <div class="toolbar-left">
         <label class="toolbar-label">画布尺寸:</label>
-        <select
-          :value="currentPreset"
-          @change="onPresetChange"
-          class="toolbar-select"
-        >
-          <option value="800x800">800 × 800</option>
-          <option value="1000x1000">1000 × 1000</option>
-          <option value="1200x1200">1200 × 1200</option>
-          <option value="1080x1920">1080 × 1920 (竖屏)</option>
-          <option value="1920x1080">1920 × 1080 (横屏)</option>
-          <option value="custom">自定义</option>
-        </select>
+        <Select
+          v-model="currentPreset"
+          :options="sizePresets"
+          size="md"
+        />
         
         <Transition name="fade">
           <div v-if="currentPreset === 'custom'" class="custom-size-inputs">
@@ -36,6 +29,31 @@
             >
           </div>
         </Transition>
+        
+        <!-- 分隔符 -->
+        <div class="toolbar-divider"></div>
+        
+        <!-- 缩放比例 -->
+        <div class="zoom-indicator">
+          <Icon name="search" size="sm" />
+          <span class="zoom-text">缩放：{{ store.canvasScalePercent }}%</span>
+        </div>
+        
+        <!-- 分隔符 -->
+        <div class="toolbar-divider"></div>
+        
+        <!-- 导出格式 -->
+        <label class="toolbar-label">导出格式:</label>
+        <div class="format-selector">
+          <button
+            v-for="fmt in ['png', 'jpeg', 'webp']"
+            :key="fmt"
+            :class="['format-btn', { active: store.exportFormat === fmt }]"
+            @click="store.setExportFormat(fmt as 'png' | 'jpeg' | 'webp')"
+          >
+            {{ fmt.toUpperCase() }}
+          </button>
+        </div>
       </div>
       
       <div class="toolbar-right">
@@ -58,24 +76,38 @@
       <div class="canvas-wrapper">
         <CanvasRenderer ref="canvasRenderer" />
         <CanvasInteractionLayer />
+        <TextInteractionLayer />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import CanvasRenderer from './CanvasRenderer.vue'
 import CanvasInteractionLayer from './CanvasInteractionLayer.vue'
+import TextInteractionLayer from './TextInteractionLayer.vue'
 import Button from '@/components/Common/Button.vue'
 import Tooltip from '@/components/Common/Tooltip.vue'
+import Icon from '@/components/Common/Icon.vue'
+import Select, { type SelectOption } from '@/components/Common/Select.vue'
 import { toast } from '@/composables/useToast'
 import { useKeyboard, SHORTCUTS } from '@/composables/useKeyboard'
 
 const store = useAppStore()
 const canvasRenderer = ref<InstanceType<typeof CanvasRenderer>>()
 const { registerShortcut } = useKeyboard()
+
+/** 画布尺寸预设选项 */
+const sizePresets: SelectOption[] = [
+  { label: '800 × 800', value: '800x800' },
+  { label: '1000 × 1000', value: '1000x1000' },
+  { label: '1200 × 1200', value: '1200x1200' },
+  { label: '1080 × 1920 (竖屏)', value: '1080x1920' },
+  { label: '1920 × 1080 (横屏)', value: '1920x1080' },
+  { label: '自定义', value: 'custom' }
+]
 
 /** 当前预设 */
 const currentPreset = ref('800x800')
@@ -87,16 +119,13 @@ const customHeight = ref(800)
 /** 导出中 */
 const isExporting = ref(false)
 
-/** 预设变化 */
-function onPresetChange(e: Event) {
-  const preset = (e.target as HTMLSelectElement).value
-  currentPreset.value = preset
-  
+/** 监听预设变化 */
+watch(currentPreset, (preset) => {
   if (preset !== 'custom') {
-    store.usePresetSize(preset)
-    toast.info(`画布尺寸已更改为 ${preset.replace('x', ' × ')}`)
+    store.usePresetSize(preset as string)
+    toast.info(`画布尺寸已更改为 ${(preset as string).replace('x', ' × ')}`)
   }
-}
+})
 
 /** 自定义尺寸变化 */
 function onCustomSizeChange() {
@@ -125,12 +154,27 @@ async function exportImage() {
     // 模拟导出延迟（给用户反馈）
     await new Promise(resolve => setTimeout(resolve, 500))
     
+    // 根据Store中的配置确定格式和质量
+    const format = store.exportFormat === 'png' 
+      ? 'image/png' 
+      : store.exportFormat === 'jpeg' 
+        ? 'image/jpeg' 
+        : 'image/webp'
+    
+    // PNG使用1.0，JPEG/WebP使用0.92的固定质量
+    const quality = store.exportFormat === 'png' ? 1.0 : 0.92
+    const ext = store.exportFormat
+    
+    // 生成文件名
+    const filename = `拼接图片_${store.canvasWidth}x${store.canvasHeight}_${Date.now()}.${ext}`
+    
+    // 导出
     const link = document.createElement('a')
-    link.download = `拼接图片_${Date.now()}.png`
-    link.href = canvas.toDataURL('image/png', 1.0)
+    link.download = filename
+    link.href = canvas.toDataURL(format, quality)
     link.click()
     
-    toast.success('图片导出成功！')
+    toast.success(`图片已导出为 ${ext.toUpperCase()} 格式！`)
   } catch (error) {
     console.error('导出失败:', error)
     toast.error('图片导出失败，请重试')
@@ -153,7 +197,15 @@ registerShortcut({
   height: 100%;
   padding: var(--spacing-5);
   gap: var(--spacing-4);
-  background: var(--color-neutral-100);
+  /* 透明背景棋盘格（类似 Photoshop） */
+  background-color: var(--color-neutral-200);
+  background-image: 
+    linear-gradient(45deg, var(--color-neutral-300) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-neutral-300) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-neutral-300) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-neutral-300) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
 /* 工具栏 */
@@ -176,31 +228,10 @@ registerShortcut({
 }
 
 .toolbar-label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  color: var(--color-neutral-700);
+  color: var(--color-neutral-600);
   white-space: nowrap;
-}
-
-.toolbar-select {
-  padding: var(--spacing-2) var(--spacing-3);
-  font-size: var(--font-size-sm);
-  color: var(--color-neutral-800);
-  background: var(--color-neutral-0);
-  border: 1px solid var(--border-color-base);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  outline: none;
-}
-
-.toolbar-select:hover {
-  border-color: var(--color-primary-400);
-}
-
-.toolbar-select:focus {
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px var(--color-primary-50);
 }
 
 .custom-size-inputs {
@@ -210,23 +241,34 @@ registerShortcut({
 }
 
 .size-input {
-  width: 80px;
-  padding: var(--spacing-2) var(--spacing-3);
-  font-size: var(--font-size-sm);
+  width: 70px;
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-mono);
   text-align: center;
-  border: 1px solid var(--border-color-base);
+  color: var(--color-neutral-800);
+  background: var(--color-neutral-50);
+  border: 1px solid var(--border-color-light);
   border-radius: var(--radius-md);
   outline: none;
   transition: var(--transition-fast);
 }
 
+.size-input:hover {
+  border-color: var(--color-primary-400);
+  background-color: var(--color-neutral-0);
+}
+
 .size-input:focus {
   border-color: var(--color-primary-500);
+  background-color: var(--color-neutral-0);
   box-shadow: 0 0 0 3px var(--color-primary-50);
 }
 
 .size-separator {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   color: var(--color-neutral-500);
 }
 
@@ -236,12 +278,71 @@ registerShortcut({
   gap: var(--spacing-2);
 }
 
+/* 工具栏分隔符 */
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color-light);
+  margin: 0 var(--spacing-2);
+}
+
+/* 缩放指示器 */
+.zoom-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-3);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color-light);
+}
+
+.zoom-text {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-mono);
+  color: var(--color-primary-600);
+  white-space: nowrap;
+}
+
+/* 格式选择器 */
+.format-selector {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+.format-btn {
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+  background: var(--color-neutral-0);
+  border: 1px solid var(--border-color-base);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-transform: uppercase;
+  min-width: 48px;
+}
+
+.format-btn:hover {
+  border-color: var(--color-primary-400);
+  background: var(--color-neutral-50);
+  color: var(--color-primary-600);
+}
+
+.format-btn.active {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500);
+  color: var(--color-neutral-0);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
 /* 画布容器 */
 .canvas-container {
   flex: 1;
-  background: var(--color-neutral-0);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-base);
+  /* 移除白色背景，让棋盘格透过来 */
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -285,6 +386,10 @@ registerShortcut({
   
   .toolbar-left {
     flex-wrap: wrap;
+  }
+  
+  .toolbar-divider {
+    display: none;
   }
   
   .toolbar-right {

@@ -147,7 +147,7 @@ function onRadiusChange(e: Event) {
 }
 
 .tool-section {
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-5);
 }
 
 .tool-section:last-child {
@@ -180,8 +180,8 @@ function onRadiusChange(e: Event) {
 /* 布局网格 */
 .layout-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-3);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-2);
   flex: 1;
   overflow-y: auto;
   padding-right: var(--spacing-2);
@@ -210,10 +210,10 @@ function onRadiusChange(e: Event) {
 .layout-item {
   position: relative;
   aspect-ratio: 1;
-  padding: var(--spacing-4);
+  padding: var(--spacing-2);
   background: var(--color-neutral-0);
   border: 2px solid var(--border-color-base);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: var(--transition-base);
   display: flex;
@@ -269,10 +269,10 @@ function onRadiusChange(e: Event) {
 /* 选中标记 */
 .layout-check {
   position: absolute;
-  top: var(--spacing-2);
-  right: var(--spacing-2);
-  width: 24px;
-  height: 24px;
+  top: var(--spacing-1);
+  right: var(--spacing-1);
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -284,7 +284,7 @@ function onRadiusChange(e: Event) {
 
 /* 控件样式 */
 .control-group {
-  margin-bottom: var(--spacing-5);
+  margin-bottom: var(--spacing-4);
 }
 
 .control-group:last-child {

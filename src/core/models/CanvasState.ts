@@ -126,7 +126,7 @@ export function cloneCanvasState(state: CanvasState): CanvasState {
 export function isStateEqual(state1: CanvasState, state2: CanvasState): boolean {
   return (
     JSON.stringify(state1.layout) === JSON.stringify(state2.layout) &&
-    JSON.stringify(state1.images.map(i => i.id)) === JSON.stringify(state2.images.map(i => i.id)) &&
+    JSON.stringify(state1.images.filter(i => i && i !== null).map(i => i.id)) === JSON.stringify(state2.images.filter(i => i && i !== null).map(i => i.id)) &&
     JSON.stringify(state1.texts) === JSON.stringify(state2.texts) &&
     JSON.stringify(state1.canvasSize) === JSON.stringify(state2.canvasSize) &&
     JSON.stringify(state1.background) === JSON.stringify(state2.background) &&

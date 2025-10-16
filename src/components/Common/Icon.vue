@@ -93,6 +93,17 @@ const iconComponents: Record<string, any> = {
     render: () => h('polyline', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', points: '9 18 15 12 9 6' })
   }),
   
+  'chevron-down': defineComponent({
+    render: () => h('polyline', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', points: '6 9 12 15 18 9' })
+  }),
+  
+  search: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('circle', { cx: '11', cy: '11', r: '8' }),
+      h('line', { x1: '21', y1: '21', x2: '16.65', y2: '16.65' })
+    ])
+  }),
+  
   'zoom-in': defineComponent({
     render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
       h('circle', { cx: '11', cy: '11', r: '8' }),

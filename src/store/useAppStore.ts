@@ -251,16 +251,46 @@ export const useAppStore = defineStore('app', () => {
   }
   
   /**
+   * 在指定位置插入图片
+   * 修复：确保在空数组或索引超出范围时正确插入到目标位置
+   * 
+   * 关键修复：不清理undefined，保持稀疏数组结构，确保位置映射正确
+   */
+  function insertImagesAt(index: number, newImages: ImageElement[]) {
+    // 扩展数组到目标索引（使用null占位，保持位置映射）
+    while (images.value.length <= index) {
+      images.value.push(null as any)
+    }
+    
+    // 在目标位置设置图片
+    newImages.forEach((img, offset) => {
+      const targetIndex = index + offset
+      img.index = targetIndex
+      
+      // 如果目标位置为空（null/undefined），直接设置
+      if (!images.value[targetIndex]) {
+        images.value[targetIndex] = img
+      } else {
+        // 目标位置已有图片，插入到该位置
+        images.value.splice(targetIndex, 0, img)
+        // 重新索引所有后续图片
+        for (let i = targetIndex; i < images.value.length; i++) {
+          if (images.value[i] && images.value[i] !== null) {
+            images.value[i].index = i
+          }
+        }
+      }
+    })
+  }
+  
+  /**
    * 删除图片
    */
   function removeImage(id: string) {
-    const index = images.value.findIndex(img => img.id === id)
+    const index = images.value.findIndex(img => img && img !== null && img.id === id)
     if (index !== -1) {
-      images.value.splice(index, 1)
-      // 重新索引
-      images.value.forEach((img, idx) => {
-        img.index = idx
-      })
+      // 设置为null而不是删除，保持位置映射
+      images.value[index] = null as any
     }
   }
   
@@ -285,7 +315,7 @@ export const useAppStore = defineStore('app', () => {
    * 水平翻转图片
    */
   function flipImageHorizontal(id: string) {
-    const image = images.value.find(img => img.id === id)
+    const image = images.value.find(img => img && img !== null && img.id === id)
     if (image) {
       image.transform.flipH = !image.transform.flipH
     }
@@ -295,7 +325,7 @@ export const useAppStore = defineStore('app', () => {
    * 垂直翻转图片
    */
   function flipImageVertical(id: string) {
-    const image = images.value.find(img => img.id === id)
+    const image = images.value.find(img => img && img !== null && img.id === id)
     if (image) {
       image.transform.flipV = !image.transform.flipV
     }
@@ -305,7 +335,7 @@ export const useAppStore = defineStore('app', () => {
    * 旋转图片（顺时针90度）
    */
   function rotateImage(id: string) {
-    const image = images.value.find(img => img.id === id)
+    const image = images.value.find(img => img && img !== null && img.id === id)
     if (image) {
       image.transform.rotation = ((image.transform.rotation + 90) % 360) as 0 | 90 | 180 | 270
     }
@@ -457,6 +487,7 @@ export const useAppStore = defineStore('app', () => {
     setCanvasScale,
     addImage,
     addImages,
+    insertImagesAt,
     removeImage,
     clearImages,
     reorderImages,

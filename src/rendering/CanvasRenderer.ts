@@ -100,11 +100,13 @@ export class CanvasRenderer {
     state: CanvasState
   ): void {
     layout.cells.forEach((cell, index) => {
-      if (index < images.length) {
+      // 检查该位置是否有图片（考虑稀疏数组的情况）
+      const image = images[index]
+      if (image && image !== null) {
         // 有图片，绘制图片
-        this.renderImage(ctx, cell, images[index], state)
+        this.renderImage(ctx, cell, image, state)
       } else {
-        // 无图片，绘制占位框
+        // 无图片（undefined或null），绘制占位框
         this.renderPlaceholder(ctx, cell, index, state)
       }
     })

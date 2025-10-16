@@ -51,4 +51,4 @@ pids
 .tmp/
 temp/
 
-./playwright-mcp
+.playwright-mcp/

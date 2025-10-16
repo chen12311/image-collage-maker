@@ -85,6 +85,16 @@ function handleKeydown(event: KeyboardEvent) {
     return
   }
 
+  // 如果在输入框中，不处理快捷键（除非是带有 Ctrl/Cmd 的组合键）
+  // 这样可以让用户正常输入，同时保留 Ctrl+Z、Ctrl+S 等常用快捷键
+  if (isInput) {
+    const hasModifier = event.ctrlKey || event.metaKey || event.altKey
+    if (!hasModifier) {
+      // 在输入框中且没有修饰键，直接返回，不处理快捷键
+      return
+    }
+  }
+
   // 匹配快捷键
   for (const config of shortcuts.value) {
     if (matchShortcut(event, config)) {

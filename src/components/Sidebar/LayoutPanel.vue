@@ -1,36 +1,5 @@
 <template>
   <div class="layout-panel">
-    <!-- 布局选择器 -->
-    <div class="tool-section">
-      <div class="section-header">
-        <Icon name="grid" size="sm" />
-        <h3 class="section-title">选择布局</h3>
-      </div>
-      <div class="layout-grid">
-        <div
-          v-for="layout in layouts"
-          :key="layout.id"
-          class="layout-item hover-lift"
-          :class="{ active: store.layoutType === layout.id }"
-          @click="selectLayout(layout.id)"
-        >
-          <div class="layout-preview">
-            <div
-              v-for="(cell, index) in layout.cells"
-              :key="index"
-              class="layout-cell"
-              :style="getCellStyle(cell)"
-            ></div>
-          </div>
-          <Transition name="scale">
-            <div v-if="store.layoutType === layout.id" class="layout-check">
-              <Icon name="check" size="sm" />
-            </div>
-          </Transition>
-        </div>
-      </div>
-    </div>
-    
     <!-- 布局参数 -->
     <div class="tool-section">
       <div class="section-header">
@@ -84,6 +53,37 @@
           :value="store.radius"
           @input="onRadiusChange"
         >
+      </div>
+    </div>
+    
+    <!-- 布局选择器 -->
+    <div class="tool-section layout-selector-section">
+      <div class="section-header">
+        <Icon name="grid" size="sm" />
+        <h3 class="section-title">选择布局</h3>
+      </div>
+      <div class="layout-grid">
+        <div
+          v-for="layout in layouts"
+          :key="layout.id"
+          class="layout-item hover-lift"
+          :class="{ active: store.layoutType === layout.id }"
+          @click="selectLayout(layout.id)"
+        >
+          <div class="layout-preview">
+            <div
+              v-for="(cell, index) in layout.cells"
+              :key="index"
+              class="layout-cell"
+              :style="getCellStyle(cell)"
+            ></div>
+          </div>
+          <Transition name="scale">
+            <div v-if="store.layoutType === layout.id" class="layout-check">
+              <Icon name="check" size="sm" />
+            </div>
+          </Transition>
+        </div>
       </div>
     </div>
   </div>
@@ -140,6 +140,9 @@ function onRadiusChange(e: Event) {
 
 <style scoped>
 .layout-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   animation: fade-in var(--duration-base) var(--ease-out);
 }
 
@@ -149,6 +152,14 @@ function onRadiusChange(e: Event) {
 
 .tool-section:last-child {
   margin-bottom: 0;
+}
+
+/* 布局选择器区域 - 延长到底部 */
+.layout-selector-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* 分组标题 */
@@ -171,9 +182,10 @@ function onRadiusChange(e: Event) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-3);
-  max-height: 500px;
+  flex: 1;
   overflow-y: auto;
   padding-right: var(--spacing-2);
+  align-content: start;
 }
 
 /* 自定义滚动条 */

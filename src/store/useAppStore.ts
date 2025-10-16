@@ -29,7 +29,7 @@ export const useAppStore = defineStore('app', () => {
   // ============================================================================
   
   /** 布局类型 */
-  const layoutType = ref<string>('grid-1x1')
+  const layoutType = ref<string>('grid-2x1-h')
   
   /** 图片间距 */
   const spacing = ref(10)
@@ -455,7 +455,7 @@ export const useAppStore = defineStore('app', () => {
    * 重置为初始状态
    */
   function reset() {
-    layoutType.value = 'grid-1x1'
+    layoutType.value = 'grid-2x1-h'
     spacing.value = 10
     padding.value = 0
     radius.value = 0

@@ -55,15 +55,8 @@ export interface LayoutConfig {
  */
 export const LAYOUT_TEMPLATES: readonly LayoutTemplate[] = [
   // ============================================================================
-  // 基础网格类（13种）
+  // 基础网格类（12种）
   // ============================================================================
-  {
-    id: 'grid-1x1',
-    name: '单图',
-    cells: [[0, 0, 1, 1]],
-    imageCount: 1,
-    tags: ['单图', '1图', '基础']
-  },
   {
     id: 'grid-2x1-h',
     name: '2图横排',
@@ -1456,8 +1449,8 @@ export const LAYOUT_MAP = new Map<string, LayoutTemplate>(
  * 默认布局配置
  */
 export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
-  type: 'grid-1x1',
-  cells: LAYOUT_MAP.get('grid-1x1')!.cells,
+  type: 'grid-2x1-h',
+  cells: LAYOUT_MAP.get('grid-2x1-h')!.cells,
   spacing: 10,
   padding: 0,
   radius: 0
@@ -1467,7 +1460,7 @@ export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
  * 创建布局配置
  */
 export function createLayoutConfig(
-  type: string = 'grid-1x1',
+  type: string = 'grid-2x1-h',
   spacing: number = 10,
   padding: number = 0,
   radius: number = 0

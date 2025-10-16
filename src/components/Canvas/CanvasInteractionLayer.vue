@@ -5,9 +5,11 @@
       v-for="(cell, index) in computedCells"
       :key="`zone-${index}`"
       class="interaction-zone"
-      :style="getZoneStyle(cell, index)"
+      :class="{ 'zone-has-image': images[index] && images[index] !== null }"
+      :style="getZoneStyle(cell)"
       @mouseenter="handleMouseEnter(index)"
       @mouseleave="handleMouseLeave(index)"
+      @mousedown="handleDragStart(index, $event)"
       @click="handleZoneClick(index)"
     />
     
@@ -28,7 +30,25 @@
         @delete="handleDelete(images[hoveredIndex].id)"
       />
     </Transition>
+    
   </div>
+  
+  <!-- 拖拽预览层（使用 Teleport 移到 body 下，避免父元素 transform 影响） -->
+  <Teleport to="body">
+    <Transition name="drag-preview">
+      <div
+        v-if="isDragging && draggingIndex !== null && getDraggedImage()"
+        class="drag-preview"
+        :style="getDragPreviewStyle()"
+      >
+        <img
+          :src="getDraggedImage()!.src"
+          :alt="getDraggedImage()!.fileName"
+          class="drag-preview-image"
+        />
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -47,6 +67,14 @@ const targetIndex = ref<number>(-1) // 记录点击的目标位置
 
 /** 延迟隐藏控件的计时器 */
 let hideTimer: ReturnType<typeof setTimeout> | null = null
+
+/** 拖拽状态 */
+const draggingIndex = ref<number | null>(null) // 正在拖拽的图片索引
+const dragStartPos = ref({ x: 0, y: 0 }) // 拖拽起始鼠标位置
+const dragCurrentPos = ref({ x: 0, y: 0 }) // 当前鼠标位置
+const dragOffset = ref({ x: 0, y: 0 }) // 鼠标在图片中的相对偏移量
+const isDragging = ref(false) // 是否正在拖拽
+const dragThreshold = 5 // 拖拽触发阈值（像素）
 
 /** 计算所有单元格的位置 */
 const computedCells = computed(() => {
@@ -69,14 +97,14 @@ const layerStyle = computed(() => ({
 }))
 
 /** 获取热区样式 */
-function getZoneStyle(cell: { x: number; y: number; width: number; height: number }, index: number) {
+function getZoneStyle(cell: { x: number; y: number; width: number; height: number }) {
   return {
     left: `${cell.x}px`,
     top: `${cell.y}px`,
     width: `${cell.width}px`,
     height: `${cell.height}px`,
     // 启用所有图片位置的交互
-    pointerEvents: 'auto'
+    pointerEvents: 'auto' as const
   }
 }
 
@@ -203,6 +231,135 @@ async function handleFileChange(e: Event) {
   }
 }
 
+/** 开始拖拽 */
+function handleDragStart(index: number, event: MouseEvent) {
+  // 只有该位置有图片时才允许拖拽
+  if (!images.value[index] || images.value[index] === null) {
+    return
+  }
+  
+  // 计算鼠标在图片中的相对偏移量
+  const cell = computedCells.value[index]
+  const layerRect = layerRef.value?.getBoundingClientRect()
+  
+  if (layerRect && cell) {
+    // 鼠标在图片中的偏移 = 鼠标位置 - 图片左上角位置（考虑缩放）
+    const offsetX = event.clientX - layerRect.left - cell.x * store.canvasScale
+    const offsetY = event.clientY - layerRect.top - cell.y * store.canvasScale
+    
+    dragOffset.value = { x: offsetX, y: offsetY }
+  }
+  
+  // 记录拖拽起始信息
+  draggingIndex.value = index
+  dragStartPos.value = { x: event.clientX, y: event.clientY }
+  dragCurrentPos.value = { x: event.clientX, y: event.clientY }
+  
+  // 隐藏控制按钮
+  hoveredIndex.value = null
+  
+  // 阻止默认行为和事件冒泡
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+/** 拖拽移动 */
+function handleDragMove(event: MouseEvent) {
+  if (draggingIndex.value === null) return
+  
+  // 更新当前鼠标位置
+  dragCurrentPos.value = { x: event.clientX, y: event.clientY }
+  
+  // 检查是否超过拖拽阈值
+  const deltaX = Math.abs(event.clientX - dragStartPos.value.x)
+  const deltaY = Math.abs(event.clientY - dragStartPos.value.y)
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+  
+  if (distance > dragThreshold) {
+    isDragging.value = true
+  }
+}
+
+/** 结束拖拽 */
+function handleDragEnd(event: MouseEvent) {
+  if (draggingIndex.value === null) return
+  
+  // 如果已经触发拖拽，执行位置交换/移动
+  if (isDragging.value) {
+    const targetCellIndex = findCellAtPoint(event.clientX, event.clientY)
+    
+    if (targetCellIndex !== null && targetCellIndex !== draggingIndex.value) {
+      const targetImage = images.value[targetCellIndex]
+      
+      if (targetImage && targetImage !== null) {
+        // 目标位置有图片，交换位置
+        store.swapImages(draggingIndex.value, targetCellIndex)
+        toast.success('图片位置已交换')
+      } else {
+        // 目标位置为空，移动图片
+        store.moveImage(draggingIndex.value, targetCellIndex)
+        toast.success('图片已移动')
+      }
+    }
+  }
+  
+  // 重置拖拽状态
+  draggingIndex.value = null
+  isDragging.value = false
+  dragStartPos.value = { x: 0, y: 0 }
+  dragCurrentPos.value = { x: 0, y: 0 }
+  dragOffset.value = { x: 0, y: 0 }
+}
+
+/** 根据鼠标位置查找单元格索引 */
+function findCellAtPoint(clientX: number, clientY: number): number | null {
+  if (!layerRef.value) return null
+  
+  const layerRect = layerRef.value.getBoundingClientRect()
+  
+  // 计算鼠标在画布坐标系中的位置
+  const canvasX = clientX - layerRect.left
+  const canvasY = clientY - layerRect.top
+  
+  // 遍历所有单元格，找到包含该点的单元格
+  for (let i = 0; i < computedCells.value.length; i++) {
+    const cell = computedCells.value[i]
+    if (
+      canvasX >= cell.x &&
+      canvasX <= cell.x + cell.width &&
+      canvasY >= cell.y &&
+      canvasY <= cell.y + cell.height
+    ) {
+      return i
+    }
+  }
+  
+  return null
+}
+
+/** 获取拖拽预览样式 */
+function getDragPreviewStyle() {
+  if (draggingIndex.value === null) return {}
+  
+  const cell = computedCells.value[draggingIndex.value]
+  if (!cell) return {}
+  
+  // 预览图位置 = 鼠标位置 - 鼠标在图片中的偏移量
+  // 这样可以保持鼠标在图片中的相对位置不变
+  return {
+    left: `${dragCurrentPos.value.x - dragOffset.value.x}px`,
+    top: `${dragCurrentPos.value.y - dragOffset.value.y}px`,
+    width: `${cell.width * store.canvasScale}px`,
+    height: `${cell.height * store.canvasScale}px`
+  }
+}
+
+/** 获取被拖拽的图片元素 */
+function getDraggedImage() {
+  if (draggingIndex.value === null) return null
+  return images.value[draggingIndex.value]
+}
+
 /** 组件挂载 */
 onMounted(() => {
   // 创建隐藏的文件输入元素
@@ -214,6 +371,10 @@ onMounted(() => {
   input.addEventListener('change', handleFileChange)
   document.body.appendChild(input)
   fileInput.value = input
+  
+  // 添加全局拖拽事件监听器
+  document.addEventListener('mousemove', handleDragMove)
+  document.addEventListener('mouseup', handleDragEnd)
 })
 
 /** 组件卸载 */
@@ -222,6 +383,10 @@ onUnmounted(() => {
     fileInput.value.removeEventListener('change', handleFileChange)
     document.body.removeChild(fileInput.value)
   }
+  
+  // 移除全局拖拽事件监听器
+  document.removeEventListener('mousemove', handleDragMove)
+  document.removeEventListener('mouseup', handleDragEnd)
 })
 </script>
 
@@ -246,6 +411,10 @@ onUnmounted(() => {
   background-color: rgba(22, 119, 255, 0.05);
 }
 
+.interaction-zone.zone-has-image {
+  cursor: move;
+}
+
 /* 控制按钮淡入淡出动画 */
 .controls-fade-enter-active,
 .controls-fade-leave-active {
@@ -254,6 +423,39 @@ onUnmounted(() => {
 
 .controls-fade-enter-from,
 .controls-fade-leave-to {
+  opacity: 0;
+}
+
+/* 拖拽预览层 */
+.drag-preview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.6;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.drag-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 拖拽预览淡入淡出动画 */
+.drag-preview-enter-active {
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.drag-preview-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-in);
+}
+
+.drag-preview-enter-from,
+.drag-preview-leave-to {
   opacity: 0;
 }
 </style>

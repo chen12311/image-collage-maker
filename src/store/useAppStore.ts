@@ -312,6 +312,53 @@ export const useAppStore = defineStore('app', () => {
   }
   
   /**
+   * 交换两个位置的图片
+   */
+  function swapImages(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return
+    if (fromIndex < 0 || toIndex < 0) return
+    if (fromIndex >= images.value.length || toIndex >= images.value.length) return
+    
+    const fromImage = images.value[fromIndex]
+    const toImage = images.value[toIndex]
+    
+    // 交换位置
+    images.value[fromIndex] = toImage
+    images.value[toIndex] = fromImage
+    
+    // 更新索引
+    if (fromImage && fromImage !== null) {
+      fromImage.index = toIndex
+    }
+    if (toImage && toImage !== null) {
+      toImage.index = fromIndex
+    }
+  }
+  
+  /**
+   * 移动图片到新位置（目标位置为空）
+   */
+  function moveImage(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return
+    if (fromIndex < 0 || toIndex < 0) return
+    
+    const image = images.value[fromIndex]
+    if (!image || image === null) return
+    
+    // 确保数组足够大
+    while (images.value.length <= toIndex) {
+      images.value.push(null as any)
+    }
+    
+    // 移动图片
+    images.value[fromIndex] = null as any
+    images.value[toIndex] = image
+    
+    // 更新索引
+    image.index = toIndex
+  }
+  
+  /**
    * 水平翻转图片
    */
   function flipImageHorizontal(id: string) {
@@ -491,6 +538,8 @@ export const useAppStore = defineStore('app', () => {
     removeImage,
     clearImages,
     reorderImages,
+    swapImages,
+    moveImage,
     flipImageHorizontal,
     flipImageVertical,
     rotateImage,

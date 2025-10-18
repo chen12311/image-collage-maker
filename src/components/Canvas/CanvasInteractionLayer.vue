@@ -13,6 +13,25 @@
       @click="handleZoneClick(index)"
     />
     
+    <!-- 长图模式：添加图片引导区域 -->
+    <Transition name="add-zone-fade">
+      <div
+        v-if="shouldShowAddZone"
+        :class="['add-image-zone', { 'add-zone-dragging': isAddZoneDragging }]"
+        :style="getAddZoneStyle()"
+        @click="handleAddZoneClick"
+        @drop="handleAddZoneDrop"
+        @dragover.prevent="isAddZoneDragging = true"
+        @dragleave="isAddZoneDragging = false"
+        @dragend="isAddZoneDragging = false"
+      >
+        <div class="add-zone-content">
+          <Icon :name="isAddZoneDragging ? 'download' : 'upload'" size="xl" class="add-zone-icon" />
+          <p class="add-zone-text">{{ isAddZoneDragging ? '松开鼠标上传' : '点击或拖拽添加图片' }}</p>
+        </div>
+      </div>
+    </Transition>
+    
     <!-- 全局控件（只有一个实例，根据 hoveredIndex 动态定位） -->
     <Transition name="controls-fade">
       <ImageControls
@@ -56,6 +75,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import { computeLayout } from '@/layout/LayoutEngine'
 import ImageControls from './ImageControls.vue'
+import Icon from '@/components/Common/Icon.vue'
 import { toast } from '@/composables/useToast'
 import { createImageElements } from '@/core/models'
 
@@ -63,7 +83,9 @@ const store = useAppStore()
 const layerRef = ref<HTMLDivElement>()
 const hoveredIndex = ref<number | null>(null)
 const fileInput = ref<HTMLInputElement>()
+const addZoneFileInput = ref<HTMLInputElement>() // 添加区域专用的文件输入
 const targetIndex = ref<number>(-1) // 记录点击的目标位置
+const isAddZoneDragging = ref(false) // 添加区域的拖拽状态
 
 /** 延迟隐藏控件的计时器 */
 let hideTimer: ReturnType<typeof setTimeout> | null = null
@@ -95,6 +117,62 @@ const layerStyle = computed(() => ({
   height: `${store.canvasHeight}px`,
   transform: `translate(-50%, -50%) scale(${store.canvasScale})`
 }))
+
+/** 是否应该显示添加图片引导区域 */
+const shouldShowAddZone = computed(() => {
+  // 只在长图模式下显示
+  if (!store.longImageMode) return false
+  
+  // 需要有至少一张图片
+  const validImages = images.value.filter(img => img && img !== null)
+  if (validImages.length === 0) return false
+  
+  return true
+})
+
+/** 计算添加图片引导区域的样式 */
+function getAddZoneStyle() {
+  // 获取有效图片数量
+  const validImages = images.value.filter(img => img && img !== null)
+  const imageCount = validImages.length
+  
+  // 获取下一个单元格的位置（索引为 imageCount）
+  const nextCell = computedCells.value[imageCount]
+  
+  if (!nextCell) {
+    // 如果没有下一个单元格，根据方向计算位置
+    const lastCell = computedCells.value[imageCount - 1]
+    if (!lastCell) return {}
+    
+    const isVertical = store.longImageDirection === 'vertical'
+    
+    if (isVertical) {
+      // 竖向：在最后一张图片下方
+      return {
+        left: `${lastCell.x}px`,
+        top: `${lastCell.y + lastCell.height + store.spacing}px`,
+        width: `${lastCell.width}px`,
+        height: `${lastCell.height}px`
+      }
+    } else {
+      // 横向：在最后一张图片右侧
+      return {
+        left: `${lastCell.x + lastCell.width + store.spacing}px`,
+        top: `${lastCell.y}px`,
+        width: `${lastCell.width}px`,
+        height: `${lastCell.height}px`
+      }
+    }
+  }
+  
+  // 使用下一个单元格的位置
+  return {
+    left: `${nextCell.x}px`,
+    top: `${nextCell.y}px`,
+    width: `${nextCell.width}px`,
+    height: `${nextCell.height}px`
+  }
+}
 
 /** 获取热区样式 */
 function getZoneStyle(cell: { x: number; y: number; width: number; height: number }) {
@@ -231,6 +309,67 @@ async function handleFileChange(e: Event) {
   }
 }
 
+/** 处理添加区域文件选择 */
+async function handleAddZoneFileChange(e: Event) {
+  const files = (e.target as HTMLInputElement).files
+  if (!files || files.length === 0) return
+  
+  try {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
+    
+    if (imageFiles.length === 0) {
+      toast.warning('请选择图片文件')
+      return
+    }
+    
+    const imageElements = await createImageElements(imageFiles)
+    
+    // 添加到末尾
+    store.addImages(imageElements)
+    toast.success(`成功添加 ${imageElements.length} 张图片`)
+    
+    // 清空 input
+    if (addZoneFileInput.value) {
+      addZoneFileInput.value.value = ''
+    }
+  } catch (error) {
+    console.error('图片加载失败:', error)
+    toast.error('部分图片加载失败，请重试')
+  }
+}
+
+/** 点击添加区域 */
+function handleAddZoneClick() {
+  addZoneFileInput.value?.click()
+}
+
+/** 添加区域拖拽放置 */
+async function handleAddZoneDrop(e: DragEvent) {
+  e.preventDefault()
+  isAddZoneDragging.value = false
+  
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+  
+  try {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
+    
+    if (imageFiles.length === 0) {
+      toast.warning('请拖拽图片文件')
+      return
+    }
+    
+    const imageElements = await createImageElements(imageFiles)
+    
+    // 添加到末尾
+    store.addImages(imageElements)
+    toast.success(`成功添加 ${imageElements.length} 张图片`)
+  } catch (error) {
+    console.error('图片加载失败:', error)
+    toast.error('部分图片加载失败，请重试')
+  }
+}
+
 /** 开始拖拽 */
 function handleDragStart(index: number, event: MouseEvent) {
   // 只有该位置有图片时才允许拖拽
@@ -362,7 +501,7 @@ function getDraggedImage() {
 
 /** 组件挂载 */
 onMounted(() => {
-  // 创建隐藏的文件输入元素
+  // 创建隐藏的文件输入元素（用于空白单元格点击）
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*'
@@ -371,6 +510,16 @@ onMounted(() => {
   input.addEventListener('change', handleFileChange)
   document.body.appendChild(input)
   fileInput.value = input
+  
+  // 创建隐藏的文件输入元素（用于添加区域）
+  const addZoneInput = document.createElement('input')
+  addZoneInput.type = 'file'
+  addZoneInput.accept = 'image/*'
+  addZoneInput.multiple = true
+  addZoneInput.style.display = 'none'
+  addZoneInput.addEventListener('change', handleAddZoneFileChange)
+  document.body.appendChild(addZoneInput)
+  addZoneFileInput.value = addZoneInput
   
   // 添加全局拖拽事件监听器
   document.addEventListener('mousemove', handleDragMove)
@@ -382,6 +531,11 @@ onUnmounted(() => {
   if (fileInput.value) {
     fileInput.value.removeEventListener('change', handleFileChange)
     document.body.removeChild(fileInput.value)
+  }
+  
+  if (addZoneFileInput.value) {
+    addZoneFileInput.value.removeEventListener('change', handleAddZoneFileChange)
+    document.body.removeChild(addZoneFileInput.value)
   }
   
   // 移除全局拖拽事件监听器
@@ -413,6 +567,74 @@ onUnmounted(() => {
 
 .interaction-zone.zone-has-image {
   cursor: move;
+}
+
+/* 添加图片引导区域 */
+.add-image-zone {
+  position: absolute;
+  pointer-events: auto;
+  border: 2px dashed var(--color-primary-400);
+  border-radius: var(--radius-md);
+  background: rgba(22, 119, 255, 0.03);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-base);
+}
+
+.add-image-zone:hover {
+  border-color: var(--color-primary-500);
+  background: rgba(22, 119, 255, 0.08);
+  transform: scale(1.02);
+}
+
+.add-image-zone.add-zone-dragging {
+  border-color: var(--color-primary-600);
+  border-style: solid;
+  background: rgba(22, 119, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.add-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  pointer-events: none;
+}
+
+.add-zone-icon {
+  color: var(--color-primary-500);
+  transition: var(--transition-transform);
+}
+
+.add-image-zone:hover .add-zone-icon {
+  transform: translateY(-4px);
+}
+
+.add-image-zone.add-zone-dragging .add-zone-icon {
+  animation: bounce var(--duration-slower) var(--ease-in-out) infinite;
+}
+
+.add-zone-text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-600);
+  text-align: center;
+  user-select: none;
+}
+
+/* 添加区域淡入淡出动画 */
+.add-zone-fade-enter-active,
+.add-zone-fade-leave-active {
+  transition: opacity var(--duration-base) var(--ease-in-out);
+}
+
+.add-zone-fade-enter-from,
+.add-zone-fade-leave-to {
+  opacity: 0;
 }
 
 /* 控制按钮淡入淡出动画 */

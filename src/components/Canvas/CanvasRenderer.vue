@@ -17,13 +17,18 @@ import { CanvasRenderer as Renderer } from '@/rendering/CanvasRenderer'
 const store = useAppStore()
 const canvasRef = ref<HTMLCanvasElement>()
 let resizeObserver: ResizeObserver | null = null
+let isMounted = ref(false) // 组件挂载状态标志
 
 /** 计算画布缩放比例 */
 function calculateScale() {
-  if (!canvasRef.value) return
+  // 防止组件卸载后执行
+  if (!isMounted.value || !canvasRef.value) return
   
   // 获取父容器（.canvas-wrapper 的父元素 .canvas-container）
-  const container = canvasRef.value.parentElement?.parentElement
+  const parentElement = canvasRef.value.parentElement
+  if (!parentElement) return
+  
+  const container = parentElement.parentElement
   if (!container) return
   
   // 获取容器尺寸
@@ -117,6 +122,8 @@ watch(
 
 /** 组件挂载后初始渲染 */
 onMounted(() => {
+  isMounted.value = true
+  
   // 初始渲染和缩放计算
   nextTick(() => {
     render()
@@ -125,7 +132,10 @@ onMounted(() => {
   
   // 监听容器尺寸变化
   if (canvasRef.value) {
-    const container = canvasRef.value.parentElement?.parentElement
+    const parentElement = canvasRef.value.parentElement
+    if (!parentElement) return
+    
+    const container = parentElement.parentElement
     if (container) {
       resizeObserver = new ResizeObserver(() => {
         calculateScale()
@@ -137,6 +147,8 @@ onMounted(() => {
 
 /** 组件卸载时清理 */
 onUnmounted(() => {
+  isMounted.value = false
+  
   // 清理 ResizeObserver
   if (resizeObserver) {
     resizeObserver.disconnect()

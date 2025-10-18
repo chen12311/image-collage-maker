@@ -3,17 +3,39 @@
     <!-- 顶部标题栏 -->
     <header class="app-header">
       <div class="header-left">
-        <button class="header-toggle-btn" @click="toggleSidebar" aria-label="切换侧边栏">
+        <button class="header-toggle-btn" @click="toggleSidebar" :aria-label="$t('app.toggleSidebar')">
           <Icon name="menu" size="md" />
         </button>
         <h1 class="app-title">
           <Icon name="image" size="lg" />
-          图片批量拼接工具
+          {{ $t('app.title') }}
         </h1>
       </div>
       <div class="header-right">
-        <Tooltip content="快捷键帮助" placement="bottom" shortcut="?">
-          <button class="header-btn" @click="helpVisible = !helpVisible">
+        <!-- 语言切换 -->
+        <div class="language-switcher" @click="toggleLanguageMenu" ref="languageButton">
+          <button class="header-btn-with-text">
+            <span class="btn-text">{{ $t('language.name') }}</span>
+            <Icon name="globe" size="md" />
+          </button>
+          <Transition name="dropdown">
+            <div v-if="languageMenuVisible" class="language-menu" @click.stop>
+              <button
+                v-for="lang in availableLocales"
+                :key="lang.value"
+                :class="['language-item', { active: store.locale === lang.value }]"
+                @click="switchLanguage(lang.value)"
+              >
+                <span>{{ lang.label }}</span>
+                <Icon v-if="store.locale === lang.value" name="check" size="sm" />
+              </button>
+            </div>
+          </Transition>
+        </div>
+        
+        <Tooltip :content="$t('shortcuts.title')" placement="bottom" shortcut="?">
+          <button class="header-btn-with-text" @click="helpVisible = !helpVisible">
+            <span class="btn-text">{{ $t('shortcuts.help') }}</span>
             <Icon name="help" size="md" />
           </button>
         </Tooltip>
@@ -41,42 +63,42 @@
       <div v-if="helpVisible" class="help-overlay" @click="helpVisible = false">
         <div class="help-panel" @click.stop>
           <div class="help-header">
-            <h2>快捷键帮助</h2>
+            <h2>{{ $t('shortcuts.title') }}</h2>
             <button class="help-close" @click="helpVisible = false">
               <Icon name="close" size="md" />
             </button>
           </div>
           <div class="help-content">
             <div class="help-section">
-              <h3>常用操作</h3>
+              <h3>{{ $t('shortcuts.commonOps') }}</h3>
               <div class="help-item">
-                <span class="help-desc">撤销</span>
+                <span class="help-desc">{{ $t('shortcuts.undo') }}</span>
                 <kbd class="help-key">Ctrl + Z</kbd>
               </div>
               <div class="help-item">
-                <span class="help-desc">重做</span>
+                <span class="help-desc">{{ $t('shortcuts.redo') }}</span>
                 <kbd class="help-key">Ctrl + Y</kbd>
               </div>
               <div class="help-item">
-                <span class="help-desc">导出图片</span>
+                <span class="help-desc">{{ $t('shortcuts.export') }}</span>
                 <kbd class="help-key">Ctrl + S</kbd>
               </div>
               <div class="help-item">
-                <span class="help-desc">删除选中</span>
+                <span class="help-desc">{{ $t('shortcuts.deleteSelected') }}</span>
                 <kbd class="help-key">Delete</kbd>
               </div>
             </div>
             <div class="help-section">
-              <h3>布局切换</h3>
+              <h3>{{ $t('shortcuts.layoutSwitch') }}</h3>
               <div class="help-item">
-                <span class="help-desc">切换到布局1-4</span>
+                <span class="help-desc">{{ $t('shortcuts.switchLayout') }}</span>
                 <kbd class="help-key">1-4</kbd>
               </div>
             </div>
             <div class="help-section">
-              <h3>视图控制</h3>
+              <h3>{{ $t('shortcuts.viewControl') }}</h3>
               <div class="help-item">
-                <span class="help-desc">切换侧边栏</span>
+                <span class="help-desc">{{ $t('shortcuts.toggleSidebar') }}</span>
                 <kbd class="help-key">Space</kbd>
               </div>
             </div>
@@ -88,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Sidebar from './components/Sidebar/Sidebar.vue'
 import CanvasArea from './components/Canvas/CanvasArea.vue'
 import Toast from './components/Common/Toast.vue'
@@ -97,11 +119,14 @@ import Tooltip from './components/Common/Tooltip.vue'
 import { useSidebar } from './composables/useResponsive'
 import { useKeyboard, SHORTCUTS } from './composables/useKeyboard'
 import { useAppStore } from './store/useAppStore'
+import { availableLocales, type Locale } from './locales'
 
 const store = useAppStore()
 const { sidebarCollapsed, toggleSidebar } = useSidebar()
 const { registerShortcut } = useKeyboard()
 const helpVisible = ref(false)
+const languageMenuVisible = ref(false)
+const languageButton = ref<HTMLElement>()
 
 // 注册全局快捷键
 registerShortcut({
@@ -111,22 +136,47 @@ registerShortcut({
 
 registerShortcut({
   ...SHORTCUTS.LAYOUT_1,
-  handler: () => store.setLayoutType(1)
+  handler: () => store.setLayoutType('grid-2x1-h')
 })
 
 registerShortcut({
   ...SHORTCUTS.LAYOUT_2,
-  handler: () => store.setLayoutType(2)
+  handler: () => store.setLayoutType('grid-2x2')
 })
 
 registerShortcut({
   ...SHORTCUTS.LAYOUT_3,
-  handler: () => store.setLayoutType(3)
+  handler: () => store.setLayoutType('grid-3x1-h')
 })
 
 registerShortcut({
   ...SHORTCUTS.LAYOUT_4,
-  handler: () => store.setLayoutType(4)
+  handler: () => store.setLayoutType('grid-2x2')
+})
+
+// 语言切换
+function switchLanguage(locale: Locale) {
+  store.setLocale(locale)
+  languageMenuVisible.value = false
+}
+
+function toggleLanguageMenu() {
+  languageMenuVisible.value = !languageMenuVisible.value
+}
+
+// 点击外部关闭语言菜单
+function handleClickOutside(e: MouseEvent) {
+  if (languageButton.value && !languageButton.value.contains(e.target as Node)) {
+    languageMenuVisible.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -194,6 +244,64 @@ registerShortcut({
   gap: var(--spacing-2);
 }
 
+/* 语言切换器 */
+.language-switcher {
+  position: relative;
+}
+
+.language-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  background: var(--color-neutral-0);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: var(--z-index-dropdown);
+}
+
+.language-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-700);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: left;
+}
+
+.language-item:hover {
+  background: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+}
+
+.language-item.active {
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* 下拉动画 */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all var(--duration-fast) var(--ease-out);
+  transform-origin: top right;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(-8px);
+}
+
 .header-btn {
   display: flex;
   align-items: center;
@@ -222,6 +330,32 @@ registerShortcut({
 .header-btn:disabled:hover {
   background: transparent;
   color: var(--color-neutral-600);
+}
+
+/* 带文字的按钮 */
+.header-btn-with-text {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 36px;
+  padding: 0 var(--spacing-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-600);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.header-btn-with-text:hover {
+  background: var(--color-neutral-100);
+  color: var(--color-primary-500);
+}
+
+.header-btn-with-text .btn-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
 }
 
 /* 主内容区 */

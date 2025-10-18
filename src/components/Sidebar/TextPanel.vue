@@ -3,16 +3,16 @@
     <div class="tool-section">
       <div class="section-header">
         <Icon name="text" size="sm" />
-        <h3 class="section-title">添加文字</h3>
+        <h3 class="section-title">{{ $t('sidebar.text.title') }}</h3>
       </div>
       
       <!-- 文字输入 -->
       <div class="control-group">
-        <label class="control-label">文字内容</label>
+        <label class="control-label">{{ $t('sidebar.text.content') }}</label>
         <textarea
           v-model="textContent"
           class="text-input"
-          placeholder="输入要添加到画布的文字..."
+          :placeholder="$t('sidebar.text.placeholder')"
           rows="3"
         ></textarea>
       </div>
@@ -20,7 +20,7 @@
       <!-- 字体大小 -->
       <div class="control-group">
         <div class="control-label-row">
-          <label class="control-label">字体大小</label>
+          <label class="control-label">{{ $t('sidebar.text.fontSize') }}</label>
           <span class="control-value">{{ fontSize }}px</span>
         </div>
         <input
@@ -34,7 +34,7 @@
       
       <!-- 文字颜色 -->
       <div class="control-group">
-        <label class="control-label">文字颜色</label>
+        <label class="control-label">{{ $t('sidebar.text.color') }}</label>
         <div class="color-grid">
           <div
             v-for="color in presetColors"
@@ -66,19 +66,19 @@
         block
         @click="addText"
       >
-        添加文字
+        {{ $t('sidebar.text.addButton') }}
       </Button>
       
       <!-- 文字列表 -->
       <div v-if="store.hasTexts" class="text-list-section">
         <div class="section-header">
-          <span class="text-count">已添加 {{ store.texts.length }} 个</span>
+          <span class="text-count">{{ $t('sidebar.text.added', { count: store.texts.length }) }}</span>
           <Button
             variant="text"
             size="sm"
             @click="clearAllTexts"
           >
-            清空
+            {{ $t('sidebar.text.clear') }}
           </Button>
         </div>
         
@@ -90,7 +90,7 @@
             @click="store.selectText(text.id)"
           >
             <div class="text-preview">
-              <div class="text-color-indicator" :style="{ background: text.color }"></div>
+              <div class="text-color-indicator" :style="{ background: text.style.color }"></div>
               <span class="text-content">{{ text.content }}</span>
             </div>
             <button class="text-remove" @click.stop="removeText(text.id)">
@@ -110,8 +110,10 @@ import { createTextElement } from '@/core/models'
 import Icon from '@/components/Common/Icon.vue'
 import Button from '@/components/Common/Button.vue'
 import { toast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const store = useAppStore()
+const { t } = useI18n()
 const colorInput = ref<HTMLInputElement>()
 
 /** 文字内容 */
@@ -138,7 +140,7 @@ function triggerColorPicker() {
 /** 添加文字 */
 function addText() {
   if (!textContent.value.trim()) {
-    toast.warning('请输入文字内容')
+    toast.warning(t('toast.pleaseInputText'))
     return
   }
   
@@ -152,7 +154,7 @@ function addText() {
   })
   
   store.addText(text)
-  toast.success('文字已添加')
+  toast.success(t('toast.textAdded'))
   
   // 清空输入
   textContent.value = ''
@@ -161,14 +163,14 @@ function addText() {
 /** 删除文字 */
 function removeText(id: string) {
   store.removeText(id)
-  toast.info('已删除文字')
+  toast.info(t('toast.textRemoved'))
 }
 
 /** 清空所有文字 */
 function clearAllTexts() {
-  if (confirm('确定要清空所有文字吗？')) {
+  if (confirm(t('confirm.clearAllTexts'))) {
     store.clearTexts()
-    toast.info('已清空所有文字')
+    toast.info(t('toast.allTextsCleared'))
   }
 }
 </script>

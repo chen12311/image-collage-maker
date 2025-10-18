@@ -3,7 +3,7 @@
     <!-- 工具栏 -->
     <div class="canvas-toolbar">
       <div class="toolbar-left">
-        <label class="toolbar-label">画布尺寸:</label>
+        <label class="toolbar-label">{{ $t('canvas.canvasSize') }}:</label>
         <Select
           v-model="currentPreset"
           :options="sizePresets"
@@ -15,7 +15,7 @@
             <input
               v-model.number="customWidth"
               type="number"
-              placeholder="宽"
+              :placeholder="$t('canvas.customWidth')"
               class="size-input"
               @change="onCustomSizeChange"
             >
@@ -23,7 +23,7 @@
             <input
               v-model.number="customHeight"
               type="number"
-              placeholder="高"
+              :placeholder="$t('canvas.customHeight')"
               class="size-input"
               @change="onCustomSizeChange"
             >
@@ -36,12 +36,12 @@
         <!-- 缩放比例 -->
         <div class="zoom-indicator">
           <Icon name="search" size="sm" />
-          <span class="zoom-text">缩放：{{ store.canvasScalePercent }}%</span>
+          <span class="zoom-text">{{ $t('canvas.zoom') }}：{{ store.canvasScalePercent }}%</span>
         </div>
         
         <!-- 缩放控制按钮组 -->
         <div class="zoom-controls">
-          <Tooltip content="缩小 (Ctrl+-)" placement="bottom">
+          <Tooltip :content="`${$t('canvas.zoomOut')} (Ctrl+-)`" placement="bottom">
             <button 
               class="zoom-btn" 
               :disabled="store.canvasScale <= 0.1"
@@ -51,7 +51,7 @@
             </button>
           </Tooltip>
           
-          <Tooltip content="放大 (Ctrl++)" placement="bottom">
+          <Tooltip :content="`${$t('canvas.zoomIn')} (Ctrl++)`" placement="bottom">
             <button 
               class="zoom-btn"
               :disabled="store.canvasScale >= 2"
@@ -61,13 +61,13 @@
             </button>
           </Tooltip>
           
-          <Tooltip content="重置到100% (Ctrl+0)" placement="bottom">
+          <Tooltip :content="`${$t('canvas.resetZoom')} (Ctrl+0)`" placement="bottom">
             <button class="zoom-btn" @click="store.resetZoom">
               <Icon name="maximize" size="sm" />
             </button>
           </Tooltip>
           
-          <Tooltip content="适应窗口" placement="bottom">
+          <Tooltip :content="$t('canvas.fitToView')" placement="bottom">
             <button 
               class="zoom-btn"
               :class="{ active: store.autoFit }"
@@ -79,7 +79,7 @@
           
           <div class="zoom-divider"></div>
           
-          <Tooltip content="自动适配" placement="bottom">
+          <Tooltip :content="$t('canvas.autoFit')" placement="bottom">
             <button 
               class="zoom-btn zoom-toggle"
               :class="{ active: store.autoFit }"
@@ -109,14 +109,14 @@
       
       <div class="toolbar-right">
         <!-- 撤销按钮 -->
-        <Tooltip content="撤销" placement="bottom" shortcut="Ctrl+Z">
+        <Tooltip :content="$t('canvas.undo')" placement="bottom" shortcut="Ctrl+Z">
           <button class="toolbar-btn" :disabled="!store.canUndo" @click="store.undo">
             <Icon name="undo" size="md" />
           </button>
         </Tooltip>
         
         <!-- 重做按钮 -->
-        <Tooltip content="重做" placement="bottom" shortcut="Ctrl+Y">
+        <Tooltip :content="$t('canvas.redo')" placement="bottom" shortcut="Ctrl+Y">
           <button class="toolbar-btn" :disabled="!store.canRedo" @click="store.redo">
             <Icon name="redo" size="md" />
           </button>
@@ -126,7 +126,7 @@
         <div class="toolbar-divider"></div>
         
         <!-- 导出按钮 -->
-        <Tooltip content="导出图片" placement="bottom" shortcut="Ctrl+S">
+        <Tooltip :content="$t('canvas.export')" placement="bottom" shortcut="Ctrl+S">
           <Button
             variant="primary"
             size="sm"
@@ -166,21 +166,24 @@ import Icon from '@/components/Common/Icon.vue'
 import Select, { type SelectOption } from '@/components/Common/Select.vue'
 import { toast } from '@/composables/useToast'
 import { useKeyboard, SHORTCUTS } from '@/composables/useKeyboard'
+import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
 
 const store = useAppStore()
+const { t } = useI18n()
 const canvasRenderer = ref<InstanceType<typeof CanvasRenderer>>()
 const canvasContainer = ref<HTMLDivElement>()
 const { registerShortcut } = useKeyboard()
 
 /** 画布尺寸预设选项 */
-const sizePresets: SelectOption[] = [
+const sizePresets = computed<SelectOption[]>(() => [
   { label: '800 × 800', value: '800x800' },
   { label: '1000 × 1000', value: '1000x1000' },
   { label: '1200 × 1200', value: '1200x1200' },
-  { label: '1080 × 1920 (竖屏)', value: '1080x1920' },
-  { label: '1920 × 1080 (横屏)', value: '1920x1080' },
-  { label: '自定义', value: 'custom' }
-]
+  { label: t('canvas.preset1080x1920'), value: '1080x1920' },
+  { label: t('canvas.preset1920x1080'), value: '1920x1080' },
+  { label: t('canvas.presetCustom'), value: 'custom' }
+])
 
 /** 当前预设 */
 const currentPreset = ref('800x800')
@@ -196,7 +199,7 @@ const isExporting = ref(false)
 watch(currentPreset, (preset) => {
   if (preset !== 'custom') {
     store.usePresetSize(preset as string)
-    toast.info(`画布尺寸已更改为 ${(preset as string).replace('x', ' × ')}`)
+    toast.info(`${t('canvas.canvasSize')}: ${(preset as string).replace('x', ' × ')}`)
   }
 })
 
@@ -204,7 +207,7 @@ watch(currentPreset, (preset) => {
 function onCustomSizeChange() {
   if (customWidth.value > 0 && customHeight.value > 0) {
     store.setCanvasSize(customWidth.value, customHeight.value)
-    toast.info(`画布尺寸已更改为 ${customWidth.value} × ${customHeight.value}`)
+    toast.info(`${t('canvas.canvasSize')}: ${customWidth.value} × ${customHeight.value}`)
   }
 }
 
@@ -212,12 +215,12 @@ function onCustomSizeChange() {
 async function exportImage() {
   const canvas = canvasRenderer.value?.getCanvas()
   if (!canvas) {
-    toast.error('画布未初始化')
+    toast.error(t('canvas.canvasNotInitialized'))
     return
   }
   
   if (store.images.length === 0) {
-    toast.warning('请先上传图片')
+    toast.warning(t('canvas.noImages'))
     return
   }
   
@@ -293,21 +296,21 @@ registerShortcut({
 registerShortcut({
   key: '=', // 实际是 +
   ctrl: true,
-  description: '放大',
+  description: t('canvas.zoomIn'),
   handler: () => store.zoomIn()
 })
 
 registerShortcut({
   key: '-',
   ctrl: true,
-  description: '缩小',
+  description: t('canvas.zoomOut'),
   handler: () => store.zoomOut()
 })
 
 registerShortcut({
   key: '0',
   ctrl: true,
-  description: '重置缩放',
+  description: t('canvas.resetZoom'),
   handler: () => store.resetZoom()
 })
 

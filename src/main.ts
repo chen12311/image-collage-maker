@@ -5,6 +5,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
+import { i18n } from './i18n'
 
 // 导入全局样式
 import './styles/design-tokens.css'
@@ -19,6 +20,9 @@ const pinia = createPinia()
 
 // 使用Pinia
 app.use(pinia)
+
+// 使用 i18n
+app.use(i18n)
 
 // 挂载应用
 app.mount('#app')

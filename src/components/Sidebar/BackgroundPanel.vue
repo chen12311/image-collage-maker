@@ -3,7 +3,7 @@
     <div class="tool-section">
       <div class="section-header">
         <Icon name="background" size="sm" />
-        <h3 class="section-title">背景设置</h3>
+        <h3 class="section-title">{{ $t('sidebar.background.title') }}</h3>
       </div>
       
       <!-- 类型切换 -->
@@ -14,14 +14,14 @@
             @click="store.setBgType('color')"
           >
             <Icon name="palette" size="sm" />
-            <span>纯色</span>
+            <span>{{ $t('sidebar.background.solidColor') }}</span>
           </button>
           <button
             :class="['type-tab', { active: store.bgType === 'image' }]"
             @click="store.setBgType('image')"
           >
             <Icon name="image" size="sm" />
-            <span>图片</span>
+            <span>{{ $t('sidebar.background.image') }}</span>
           </button>
         </div>
       </div>
@@ -30,7 +30,7 @@
       <template v-if="store.bgType === 'color'">
         <!-- 背景颜色 -->
         <div class="control-group">
-          <label class="control-label">背景颜色</label>
+          <label class="control-label">{{ $t('sidebar.background.bgColor') }}</label>
           <div class="color-grid">
             <div
               v-for="color in presetColors"
@@ -58,7 +58,7 @@
         <!-- 背景透明度 -->
         <div class="control-group">
           <div class="control-label-row">
-            <label class="control-label">背景透明度</label>
+            <label class="control-label">{{ $t('sidebar.background.bgOpacity') }}</label>
             <span class="control-value">{{ store.bgOpacity }}%</span>
           </div>
           <input
@@ -73,16 +73,16 @@
         
         <!-- 快捷预设 -->
         <div class="control-group">
-          <label class="control-label">快捷预设</label>
+          <label class="control-label">{{ $t('sidebar.background.quickPresets') }}</label>
           <div class="preset-grid">
             <button
               v-for="preset in presets"
-              :key="preset.name"
+              :key="preset.key"
               class="preset-item"
               @click="applyPreset(preset)"
             >
               <div class="preset-preview" :style="{ background: preset.color }"></div>
-              <span class="preset-name">{{ preset.name }}</span>
+              <span class="preset-name">{{ $t(`sidebar.background.${preset.key}`) }}</span>
             </button>
           </div>
         </div>
@@ -111,15 +111,15 @@
               <Icon :name="isDragging ? 'download' : 'upload'" size="lg" />
             </div>
             <div class="upload-text">
-              <p class="upload-primary">{{ isDragging ? '松开上传' : '点击或拖拽图片' }}</p>
-              <p class="upload-secondary">支持 JPG、PNG、GIF</p>
+              <p class="upload-primary">{{ isDragging ? $t('sidebar.background.releaseToUpload') : $t('sidebar.background.clickOrDragImage') }}</p>
+              <p class="upload-secondary">{{ $t('sidebar.background.supportedImageFormats') }}</p>
             </div>
           </div>
         </div>
         
         <!-- 图片预览 -->
         <div v-else class="control-group">
-          <label class="control-label">背景图片</label>
+          <label class="control-label">{{ $t('sidebar.background.bgImage') }}</label>
           <div class="image-preview-container">
             <img :src="store.bgImageUrl" alt="背景图片" class="image-preview">
             <button class="image-remove" @click="removeBgImage">
@@ -133,7 +133,7 @@
           <!-- 透明度 -->
           <div class="control-group">
             <div class="control-label-row">
-              <label class="control-label">透明度</label>
+              <label class="control-label">{{ $t('sidebar.background.opacity') }}</label>
               <span class="control-value">{{ store.bgImageEffects.opacity }}%</span>
             </div>
             <input
@@ -149,7 +149,7 @@
           <!-- 模糊 -->
           <div class="control-group">
             <div class="control-label-row">
-              <label class="control-label">模糊</label>
+              <label class="control-label">{{ $t('sidebar.background.blur') }}</label>
               <span class="control-value">{{ store.bgImageEffects.blur }}px</span>
             </div>
             <input
@@ -165,7 +165,7 @@
           <!-- 亮度 -->
           <div class="control-group">
             <div class="control-label-row">
-              <label class="control-label">亮度</label>
+              <label class="control-label">{{ $t('sidebar.background.brightness') }}</label>
               <span class="control-value">{{ store.bgImageEffects.brightness }}%</span>
             </div>
             <input
@@ -181,7 +181,7 @@
           <!-- 对比度 -->
           <div class="control-group">
             <div class="control-label-row">
-              <label class="control-label">对比度</label>
+              <label class="control-label">{{ $t('sidebar.background.contrast') }}</label>
               <span class="control-value">{{ store.bgImageEffects.contrast }}%</span>
             </div>
             <input
@@ -204,8 +204,10 @@ import { ref } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import Icon from '@/components/Common/Icon.vue'
 import { toast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const store = useAppStore()
+const { t } = useI18n()
 const colorInput = ref<HTMLInputElement>()
 const fileInput = ref<HTMLInputElement>()
 const isDragging = ref(false)
@@ -219,16 +221,16 @@ const presetColors = [
 
 /** 背景预设 */
 interface Preset {
-  name: string
+  key: string
   color: string
   opacity?: number
 }
 
 const presets: Preset[] = [
-  { name: '纯白', color: '#FFFFFF', opacity: 100 },
-  { name: '浅灰', color: '#F5F5F5', opacity: 100 },
-  { name: '透明', color: '#FFFFFF', opacity: 0 },
-  { name: '深色', color: '#1F1F1F', opacity: 100 }
+  { key: 'pureWhite', color: '#FFFFFF', opacity: 100 },
+  { key: 'lightGray', color: '#F5F5F5', opacity: 100 },
+  { key: 'transparent', color: '#FFFFFF', opacity: 0 },
+  { key: 'dark', color: '#1F1F1F', opacity: 100 }
 ]
 
 /** 触发颜色选择器 */
@@ -288,7 +290,7 @@ async function onDrop(e: DragEvent) {
 async function handleFile(file: File) {
   try {
     if (!file.type.startsWith('image/')) {
-      toast.warning('请选择图片文件')
+      toast.warning(t('toast.pleaseSelectImage'))
       return
     }
     
@@ -298,23 +300,23 @@ async function handleFile(file: File) {
       const url = e.target?.result as string
       if (url) {
         store.setBgImage(url)
-        toast.success('背景图片已上传')
+        toast.success(t('toast.bgImageUploaded'))
       }
     }
     reader.onerror = () => {
-      toast.error('图片读取失败')
+      toast.error(t('toast.bgImageReadError'))
     }
     reader.readAsDataURL(file)
   } catch (error) {
     console.error('图片处理失败:', error)
-    toast.error('图片处理失败，请重试')
+    toast.error(t('toast.bgImageProcessError'))
   }
 }
 
 /** 删除背景图片 */
 function removeBgImage() {
   store.clearBgImage()
-  toast.info('已清除背景图片')
+  toast.info(t('toast.bgImageCleared'))
 }
 
 /** 图片透明度变化 */

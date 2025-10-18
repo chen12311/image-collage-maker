@@ -8,10 +8,10 @@
         class="tool-tab"
         :class="{ active: activeTab === tab.id }"
         @click="activeTab = tab.id"
-        :aria-label="tab.label"
+        :aria-label="$t(tab.label)"
       >
         <Icon :name="tab.icon" size="md" class="tab-icon" />
-        <span class="tab-label">{{ tab.label }}</span>
+        <span class="tab-label">{{ $t(tab.label) }}</span>
       </button>
     </div>
     
@@ -46,11 +46,11 @@ interface Tab {
 
 /** 标签页列表 */
 const tabs: Tab[] = [
-  { id: 'layout', label: '布局', icon: 'layout' },
-  { id: 'image', label: '图片', icon: 'image' },
-  { id: 'text', label: '文字', icon: 'text' },
-  { id: 'background', label: '背景', icon: 'background' },
-  { id: 'settings', label: '设置', icon: 'settings' }
+  { id: 'layout', label: 'sidebar.tabs.layout', icon: 'layout' },
+  { id: 'image', label: 'sidebar.tabs.image', icon: 'image' },
+  { id: 'text', label: 'sidebar.tabs.text', icon: 'text' },
+  { id: 'background', label: 'sidebar.tabs.background', icon: 'background' },
+  { id: 'settings', label: 'sidebar.tabs.settings', icon: 'settings' }
 ]
 
 /** 当前激活的标签页 */

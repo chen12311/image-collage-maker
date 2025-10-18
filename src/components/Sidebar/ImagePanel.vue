@@ -3,7 +3,7 @@
     <div class="tool-section">
       <div class="section-header">
         <Icon name="upload" size="sm" />
-        <h3 class="section-title">上传图片</h3>
+        <h3 class="section-title">{{ $t('sidebar.image.title') }}</h3>
       </div>
       
       <!-- 上传区域 -->
@@ -27,21 +27,21 @@
           <Icon :name="isDragging ? 'download' : 'upload'" size="xl" />
         </div>
         <div class="upload-text">
-          <p class="upload-primary">{{ isDragging ? '松开鼠标上传' : '点击或拖拽图片到此处' }}</p>
-          <p class="upload-secondary">支持 JPG、PNG、GIF 等格式</p>
+          <p class="upload-primary">{{ isDragging ? $t('sidebar.image.releaseToUpload') : $t('sidebar.image.clickOrDrag') }}</p>
+          <p class="upload-secondary">{{ $t('sidebar.image.supportedFormats') }}</p>
         </div>
       </div>
       
       <!-- 图片列表 -->
       <div v-if="store.hasImages" class="image-list-section">
         <div class="section-header">
-          <span class="image-count">已上传 {{ store.images.length }} 张</span>
+          <span class="image-count">{{ $t('sidebar.image.uploaded', { count: store.images.length }) }}</span>
           <Button
             variant="text"
             size="sm"
             @click="clearAllImages"
           >
-            清空
+            {{ $t('sidebar.image.clear') }}
           </Button>
         </div>
         
@@ -72,7 +72,7 @@
       <!-- 空状态提示 -->
       <div v-else class="empty-state">
         <Icon name="image" size="xl" />
-        <p>还没有上传图片</p>
+        <p>{{ $t('sidebar.image.noImages') }}</p>
       </div>
     </div>
   </div>
@@ -85,8 +85,10 @@ import { createImageElements } from '@/core/models'
 import Icon from '@/components/Common/Icon.vue'
 import Button from '@/components/Common/Button.vue'
 import { toast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const store = useAppStore()
+const { t } = useI18n()
 const fileInput = ref<HTMLInputElement>()
 const isDragging = ref(false)
 const dragIndex = ref<number>(-1)
@@ -126,34 +128,34 @@ async function handleFiles(files: File[]) {
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     
     if (imageFiles.length === 0) {
-      toast.warning('请选择图片文件')
+      toast.warning(t('toast.pleaseSelectImage'))
       return
     }
     
     if (imageFiles.length !== files.length) {
-      toast.warning(`已过滤掉 ${files.length - imageFiles.length} 个非图片文件`)
+      toast.warning(t('toast.filteredNonImages', { count: files.length - imageFiles.length }))
     }
     
     const imageElements = await createImageElements(imageFiles)
     store.addImages(imageElements)
-    toast.success(`成功上传 ${imageElements.length} 张图片`)
+    toast.success(t('toast.uploadSuccess', { count: imageElements.length }))
   } catch (error) {
     console.error('图片加载失败:', error)
-    toast.error('部分图片加载失败，请重试')
+    toast.error(t('toast.uploadError'))
   }
 }
 
 /** 删除图片 */
 function removeImage(id: string) {
   store.removeImage(id)
-  toast.info('已删除图片')
+  toast.info(t('toast.imageRemoved'))
 }
 
 /** 清空所有图片 */
 function clearAllImages() {
-  if (confirm('确定要清空所有图片吗？')) {
+  if (confirm(t('confirm.clearAllImages'))) {
     store.clearImages()
-    toast.info('已清空所有图片')
+    toast.info(t('toast.allImagesCleared'))
   }
 }
 

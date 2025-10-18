@@ -7,7 +7,7 @@
         <div class="toggle-row">
           <label class="toggle-label">
             <Icon name="layout" size="sm" />
-            <span>启用长图模式</span>
+            <span>{{ $t('sidebar.layout.enableLongImage') }}</span>
           </label>
           <button
             :class="['toggle-btn', { active: store.longImageMode }]"
@@ -23,21 +23,21 @@
         <div v-if="store.longImageMode" class="long-image-config">
           <!-- 方向选择 -->
           <div class="control-group">
-            <label class="control-label">拼接方向</label>
+            <label class="control-label">{{ $t('sidebar.layout.direction') }}</label>
             <div class="direction-selector">
               <button
                 :class="['direction-btn', { active: store.longImageDirection === 'vertical' }]"
                 @click="store.setLongImageDirection('vertical')"
               >
                 <Icon name="layout" size="md" style="transform: rotate(90deg)" />
-                <span>竖向</span>
+                <span>{{ $t('sidebar.layout.vertical') }}</span>
               </button>
               <button
                 :class="['direction-btn', { active: store.longImageDirection === 'horizontal' }]"
                 @click="store.setLongImageDirection('horizontal')"
               >
                 <Icon name="layout" size="md" />
-                <span>横向</span>
+                <span>{{ $t('sidebar.layout.horizontal') }}</span>
           </button>
         </div>
       </div>
@@ -49,13 +49,13 @@
     <div class="tool-section">
       <div class="section-header">
         <Icon name="settings" size="sm" />
-        <h3 class="section-title">布局参数</h3>
+        <h3 class="section-title">{{ $t('sidebar.layout.layoutParams') }}</h3>
       </div>
       
       <!-- 间距 -->
       <div class="control-group">
         <div class="control-label-row">
-          <label class="control-label">间距</label>
+          <label class="control-label">{{ $t('sidebar.layout.spacing') }}</label>
           <span class="control-value">{{ store.spacing }}px</span>
         </div>
         <input
@@ -71,7 +71,7 @@
       <!-- 边距 -->
       <div class="control-group">
         <div class="control-label-row">
-          <label class="control-label">边距</label>
+          <label class="control-label">{{ $t('sidebar.layout.padding') }}</label>
           <span class="control-value">{{ store.padding }}px</span>
         </div>
         <input
@@ -87,7 +87,7 @@
       <!-- 圆角 -->
       <div class="control-group">
         <div class="control-label-row">
-          <label class="control-label">圆角</label>
+          <label class="control-label">{{ $t('sidebar.layout.radius') }}</label>
           <span class="control-value">{{ store.radius }}px</span>
         </div>
         <input
@@ -105,7 +105,7 @@
     <div v-if="!store.longImageMode" class="tool-section layout-selector-section">
       <div class="section-header">
         <Icon name="grid" size="sm" />
-        <h3 class="section-title">选择布局</h3>
+        <h3 class="section-title">{{ $t('sidebar.layout.selectLayout') }}</h3>
       </div>
       <div class="layout-grid">
         <div

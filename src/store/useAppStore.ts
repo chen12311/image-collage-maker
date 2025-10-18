@@ -30,11 +30,12 @@ import {
   type SizeCalculationMode 
 } from '@/core/canvas/CanvasSizeCalculator'
 import {
-  type LongImagePreset,
   getPresetById
 } from '@/core/presets/LongImagePresets'
 import { createHistoryManager } from '@/history/HistoryManager'
 import { toast } from '@/composables/useToast'
+import { i18n, saveLocale } from '@/i18n'
+import type { Locale } from '@/locales'
 
 /**
  * 应用Store
@@ -43,6 +44,9 @@ export const useAppStore = defineStore('app', () => {
   // ============================================================================
   // 状态定义
   // ============================================================================
+  
+  /** 当前语言 */
+  const locale = ref<Locale>(i18n.global.locale.value as Locale)
   
   /** 布局类型 */
   const layoutType = ref<string>('grid-2x1-h')
@@ -412,6 +416,19 @@ export const useAppStore = defineStore('app', () => {
    */
   function toggleAutoFit() {
     autoFit.value = !autoFit.value
+  }
+  
+  // ============================================================================
+  // 语言切换
+  // ============================================================================
+  
+  /**
+   * 设置语言
+   */
+  function setLocale(newLocale: Locale) {
+    locale.value = newLocale
+    i18n.global.locale.value = newLocale
+    saveLocale(newLocale)
   }
   
   // ============================================================================
@@ -893,6 +910,7 @@ export const useAppStore = defineStore('app', () => {
   
   return {
     // 状态
+    locale,
     layoutType,
     spacing,
     padding,
@@ -931,6 +949,7 @@ export const useAppStore = defineStore('app', () => {
     canRedo,
     
     // 方法
+    setLocale,
     setLayoutType,
     setSpacing,
     setPadding,

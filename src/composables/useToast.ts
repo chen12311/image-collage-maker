@@ -3,7 +3,7 @@
  * 提供全局消息提示功能
  */
 
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 
 /** Toast类型 */
 export type ToastType = 'success' | 'error' | 'warning' | 'info'

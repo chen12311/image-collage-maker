@@ -4,13 +4,13 @@
     <div class="panel-section">
       <div class="section-header">
         <Icon name="eye" size="sm" />
-        <h3 class="section-title">透明度</h3>
+        <h3 class="section-title">{{ $t('sidebar.settings.opacitySection') }}</h3>
       </div>
       
       <!-- 全局透明度 -->
       <div class="control-group">
         <div class="control-label-row">
-          <label class="control-label">整体透明度</label>
+          <label class="control-label">{{ $t('sidebar.settings.globalOpacity') }}</label>
           <span class="control-value">{{ store.globalOpacity }}%</span>
         </div>
         <input
@@ -26,7 +26,7 @@
       <!-- 图片透明度 -->
       <div class="control-group">
         <div class="control-label-row">
-          <label class="control-label">图片透明度</label>
+          <label class="control-label">{{ $t('sidebar.settings.imageOpacity') }}</label>
           <span class="control-value">{{ store.imageOpacity }}%</span>
         </div>
         <input
@@ -50,7 +50,7 @@
       block
       @click="resetAll"
     >
-      重置所有设置
+      {{ $t('sidebar.settings.resetAll') }}
     </Button>
   </div>
 </template>
@@ -61,8 +61,10 @@ import { createHistoryManager } from '@/history/HistoryManager'
 import Icon from '@/components/Common/Icon.vue'
 import Button from '@/components/Common/Button.vue'
 import { toast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const store = useAppStore()
+const { t } = useI18n()
 const historyManager = createHistoryManager()
 
 /** 全局透明度变化 */
@@ -79,11 +81,11 @@ function onImageOpacityChange(e: Event) {
 
 /** 重置所有 */
 function resetAll() {
-  if (confirm('确定要重置所有设置吗？这将清空所有内容。')) {
+  if (confirm(t('confirm.resetAll'))) {
     store.reset()
     historyManager.clear()
     historyManager.push(store.currentState)
-    toast.success('已重置所有设置')
+    toast.success(t('toast.allReset'))
   }
 }
 </script>

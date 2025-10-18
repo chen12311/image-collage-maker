@@ -57,6 +57,24 @@
       </div>
       
       <div class="toolbar-right">
+        <!-- 撤销按钮 -->
+        <Tooltip content="撤销" placement="bottom" shortcut="Ctrl+Z">
+          <button class="toolbar-btn" :disabled="!store.canUndo" @click="store.undo">
+            <Icon name="undo" size="md" />
+          </button>
+        </Tooltip>
+        
+        <!-- 重做按钮 -->
+        <Tooltip content="重做" placement="bottom" shortcut="Ctrl+Y">
+          <button class="toolbar-btn" :disabled="!store.canRedo" @click="store.redo">
+            <Icon name="redo" size="md" />
+          </button>
+        </Tooltip>
+        
+        <!-- 分隔符 -->
+        <div class="toolbar-divider"></div>
+        
+        <!-- 导出按钮 -->
         <Tooltip content="导出图片" placement="bottom" shortcut="Ctrl+S">
           <Button
             variant="primary"
@@ -182,6 +200,17 @@ async function exportImage() {
     isExporting.value = false
   }
 }
+
+// 注册撤销/重做快捷键
+registerShortcut({
+  ...SHORTCUTS.UNDO,
+  handler: () => store.undo()
+})
+
+registerShortcut({
+  ...SHORTCUTS.REDO,
+  handler: () => store.redo()
+})
 
 // 注册导出快捷键
 registerShortcut({
@@ -336,6 +365,37 @@ registerShortcut({
   background: var(--color-primary-500);
   color: var(--color-neutral-0);
   box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+/* 工具栏按钮（撤销/重做） */
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-600);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.toolbar-btn:hover {
+  background: var(--color-neutral-100);
+  color: var(--color-primary-500);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar-btn:disabled:hover {
+  background: transparent;
+  color: var(--color-neutral-600);
 }
 
 /* 画布容器 */

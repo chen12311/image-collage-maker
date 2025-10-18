@@ -33,6 +33,8 @@ import {
   type LongImagePreset,
   getPresetById
 } from '@/core/presets/LongImagePresets'
+import { createHistoryManager } from '@/history/HistoryManager'
+import { toast } from '@/composables/useToast'
 
 /**
  * 应用Store
@@ -92,6 +94,13 @@ export const useAppStore = defineStore('app', () => {
   
   /** 画布缩放比例（1 = 100%） */
   const canvasScale = ref(1)
+  
+  // ============================================================================
+  // 历史管理器
+  // ============================================================================
+  
+  /** 历史管理器实例 */
+  const historyManager = createHistoryManager()
   
   // ============================================================================
   // 长图模式状态
@@ -195,6 +204,12 @@ export const useAppStore = defineStore('app', () => {
   
   /** 画布缩放百分比 */
   const canvasScalePercent = computed(() => Math.round(canvasScale.value * 100))
+  
+  /** 是否可以撤销 */
+  const canUndo = computed(() => historyManager.canUndo)
+  
+  /** 是否可以重做 */
+  const canRedo = computed(() => historyManager.canRedo)
   
   // ============================================================================
   // 布局操作
@@ -776,6 +791,28 @@ export const useAppStore = defineStore('app', () => {
     texts.value = [...state.texts]
   }
   
+  /**
+   * 撤销
+   */
+  function undo() {
+    const state = historyManager.undo()
+    if (state) {
+      restoreState(state)
+      toast.info('已撤销')
+    }
+  }
+  
+  /**
+   * 重做
+   */
+  function redo() {
+    const state = historyManager.redo()
+    if (state) {
+      restoreState(state)
+      toast.info('已重做')
+    }
+  }
+  
   // ============================================================================
   // 监听器
   // ============================================================================
@@ -791,6 +828,20 @@ export const useAppStore = defineStore('app', () => {
       }
     }
   )
+  
+  /**
+   * 监听状态变化，记录历史
+   */
+  watch(
+    currentState,
+    (newState) => {
+      historyManager.push(newState)
+    },
+    { deep: true }
+  )
+  
+  // 记录初始状态
+  historyManager.push(currentState.value)
   
   // ============================================================================
   // 返回Store API
@@ -831,6 +882,8 @@ export const useAppStore = defineStore('app', () => {
     hasImages,
     hasTexts,
     canvasScalePercent,
+    canUndo,
+    canRedo,
     
     // 方法
     setLayoutType,
@@ -879,7 +932,9 @@ export const useAppStore = defineStore('app', () => {
     selectText,
     deselectAllTexts,
     reset,
-    restoreState
+    restoreState,
+    undo,
+    redo
   }
 })
 

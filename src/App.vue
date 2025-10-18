@@ -12,16 +12,6 @@
         </h1>
       </div>
       <div class="header-right">
-        <Tooltip content="撤销" placement="bottom" shortcut="Ctrl+Z">
-          <button class="header-btn" :disabled="!historyManager.canUndo" @click="undo">
-            <Icon name="undo" size="md" />
-          </button>
-        </Tooltip>
-        <Tooltip content="重做" placement="bottom" shortcut="Ctrl+Y">
-          <button class="header-btn" :disabled="!historyManager.canRedo" @click="redo">
-            <Icon name="redo" size="md" />
-          </button>
-        </Tooltip>
         <Tooltip content="快捷键帮助" placement="bottom" shortcut="?">
           <button class="header-btn" @click="helpVisible = !helpVisible">
             <Icon name="help" size="md" />
@@ -104,39 +94,14 @@ import CanvasArea from './components/Canvas/CanvasArea.vue'
 import Toast from './components/Common/Toast.vue'
 import Icon from './components/Common/Icon.vue'
 import Tooltip from './components/Common/Tooltip.vue'
-import Button from './components/Common/Button.vue'
 import { useSidebar } from './composables/useResponsive'
 import { useKeyboard, SHORTCUTS } from './composables/useKeyboard'
 import { useAppStore } from './store/useAppStore'
-import { createHistoryManager } from './history/HistoryManager'
-import { toast } from './composables/useToast'
-import { onMounted, watch } from 'vue'
 
 const store = useAppStore()
 const { sidebarCollapsed, toggleSidebar } = useSidebar()
 const { registerShortcut } = useKeyboard()
 const helpVisible = ref(false)
-
-/** 历史管理器 */
-const historyManager = createHistoryManager()
-
-/** 撤销 */
-function undo() {
-  const state = historyManager.undo()
-  if (state) {
-    store.restoreState(state)
-    toast.info('已撤销')
-  }
-}
-
-/** 重做 */
-function redo() {
-  const state = historyManager.redo()
-  if (state) {
-    store.restoreState(state)
-    toast.info('已重做')
-  }
-}
 
 // 注册全局快捷键
 registerShortcut({
@@ -162,31 +127,6 @@ registerShortcut({
 registerShortcut({
   ...SHORTCUTS.LAYOUT_4,
   handler: () => store.setLayoutType(4)
-})
-
-registerShortcut({
-  ...SHORTCUTS.UNDO,
-  handler: () => undo()
-})
-
-registerShortcut({
-  ...SHORTCUTS.REDO,
-  handler: () => redo()
-})
-
-/** 监听状态变化，记录历史 */
-watch(
-  () => store.currentState,
-  (newState) => {
-    historyManager.push(newState)
-  },
-  { deep: true }
-)
-
-/** 组件挂载 */
-onMounted(() => {
-  // 记录初始状态
-  historyManager.push(store.currentState)
 })
 </script>
 

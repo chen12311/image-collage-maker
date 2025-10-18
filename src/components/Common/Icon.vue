@@ -63,6 +63,15 @@ const iconComponents: Record<string, any> = {
     ])
   }),
   
+  palette: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('circle', { cx: '12', cy: '12', r: '10' }),
+      h('circle', { cx: '8.5', cy: '8.5', r: '1.5' }),
+      h('circle', { cx: '15.5', cy: '8.5', r: '1.5' }),
+      h('circle', { cx: '12', cy: '15', r: '1.5' })
+    ])
+  }),
+  
   undo: defineComponent({
     render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
       h('polyline', { points: '1 4 1 10 7 10' }),

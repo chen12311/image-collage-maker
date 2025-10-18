@@ -13,10 +13,12 @@ import {
   type CanvasState,
   type CanvasSize,
   type BackgroundConfig,
+  type BackgroundImageEffects,
   type OpacityConfig,
   createLayoutConfig,
   getLayoutById,
   DEFAULT_BACKGROUND_CONFIG,
+  DEFAULT_BACKGROUND_IMAGE_EFFECTS,
   DEFAULT_OPACITY_CONFIG
 } from '@/core/models'
 import { 
@@ -52,11 +54,20 @@ export const useAppStore = defineStore('app', () => {
   /** 圆角 */
   const radius = ref(0)
   
+  /** 背景类型 */
+  const bgType = ref<'color' | 'image'>(DEFAULT_BACKGROUND_CONFIG.type)
+  
   /** 背景颜色 */
   const bgColor = ref(DEFAULT_BACKGROUND_CONFIG.color)
   
   /** 背景透明度 */
   const bgOpacity = ref(DEFAULT_BACKGROUND_CONFIG.opacity)
+  
+  /** 背景图片 URL */
+  const bgImageUrl = ref<string | undefined>(undefined)
+  
+  /** 背景图片效果 */
+  const bgImageEffects = ref<BackgroundImageEffects>({ ...DEFAULT_BACKGROUND_IMAGE_EFFECTS })
   
   /** 全局透明度 */
   const globalOpacity = ref(DEFAULT_OPACITY_CONFIG.global)
@@ -144,8 +155,13 @@ export const useAppStore = defineStore('app', () => {
   
   /** 背景配置 */
   const backgroundConfig = computed<BackgroundConfig>(() => ({
+    type: bgType.value,
     color: bgColor.value,
-    opacity: bgOpacity.value
+    opacity: bgOpacity.value,
+    image: bgImageUrl.value ? {
+      url: bgImageUrl.value,
+      effects: { ...bgImageEffects.value }
+    } : undefined
   }))
   
   /** 透明度配置 */
@@ -237,6 +253,13 @@ export const useAppStore = defineStore('app', () => {
   // ============================================================================
   
   /**
+   * 设置背景类型
+   */
+  function setBgType(type: 'color' | 'image') {
+    bgType.value = type
+  }
+  
+  /**
    * 设置背景颜色
    */
   function setBgColor(color: string) {
@@ -248,6 +271,52 @@ export const useAppStore = defineStore('app', () => {
    */
   function setBgOpacity(value: number) {
     bgOpacity.value = Math.max(0, Math.min(100, value))
+  }
+  
+  /**
+   * 设置背景图片
+   */
+  function setBgImage(url: string) {
+    bgImageUrl.value = url
+    // 自动切换到图片模式
+    bgType.value = 'image'
+  }
+  
+  /**
+   * 清除背景图片
+   */
+  function clearBgImage() {
+    bgImageUrl.value = undefined
+    // 切换回纯色模式
+    bgType.value = 'color'
+  }
+  
+  /**
+   * 设置背景图片透明度
+   */
+  function setBgImageOpacity(value: number) {
+    bgImageEffects.value.opacity = Math.max(0, Math.min(100, value))
+  }
+  
+  /**
+   * 设置背景图片模糊
+   */
+  function setBgImageBlur(value: number) {
+    bgImageEffects.value.blur = Math.max(0, Math.min(20, value))
+  }
+  
+  /**
+   * 设置背景图片亮度
+   */
+  function setBgImageBrightness(value: number) {
+    bgImageEffects.value.brightness = Math.max(0, Math.min(200, value))
+  }
+  
+  /**
+   * 设置背景图片对比度
+   */
+  function setBgImageContrast(value: number) {
+    bgImageEffects.value.contrast = Math.max(0, Math.min(200, value))
   }
   
   // ============================================================================
@@ -671,8 +740,11 @@ export const useAppStore = defineStore('app', () => {
     spacing.value = 10
     padding.value = 0
     radius.value = 0
+    bgType.value = 'color'
     bgColor.value = '#ffffff'
     bgOpacity.value = 100
+    bgImageUrl.value = undefined
+    bgImageEffects.value = { ...DEFAULT_BACKGROUND_IMAGE_EFFECTS }
     globalOpacity.value = 100
     imageOpacity.value = 100
     canvasWidth.value = 800
@@ -689,8 +761,13 @@ export const useAppStore = defineStore('app', () => {
     spacing.value = state.layout.spacing
     padding.value = state.layout.padding
     radius.value = state.layout.radius
+    bgType.value = state.background.type
     bgColor.value = state.background.color
     bgOpacity.value = state.background.opacity
+    bgImageUrl.value = state.background.image?.url
+    bgImageEffects.value = state.background.image?.effects 
+      ? { ...state.background.image.effects } 
+      : { ...DEFAULT_BACKGROUND_IMAGE_EFFECTS }
     globalOpacity.value = state.opacity.global
     imageOpacity.value = state.opacity.image
     canvasWidth.value = state.canvasSize.width
@@ -725,8 +802,11 @@ export const useAppStore = defineStore('app', () => {
     spacing,
     padding,
     radius,
+    bgType,
     bgColor,
     bgOpacity,
+    bgImageUrl,
+    bgImageEffects,
     globalOpacity,
     imageOpacity,
     canvasWidth,
@@ -759,8 +839,15 @@ export const useAppStore = defineStore('app', () => {
     setRadius,
     setCanvasSize,
     usePresetSize,
+    setBgType,
     setBgColor,
     setBgOpacity,
+    setBgImage,
+    clearBgImage,
+    setBgImageOpacity,
+    setBgImageBlur,
+    setBgImageBrightness,
+    setBgImageContrast,
     setGlobalOpacity,
     setImageOpacity,
     setExportFormat,

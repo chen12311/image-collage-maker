@@ -17,14 +17,48 @@ export interface CanvasSize {
 }
 
 /**
+ * 背景图片效果配置
+ */
+export interface BackgroundImageEffects {
+  /** 透明度 (0-100) */
+  opacity: number
+  
+  /** 模糊效果 (0-20 px) */
+  blur: number
+  
+  /** 亮度 (0-200 %) */
+  brightness: number
+  
+  /** 对比度 (0-200 %) */
+  contrast: number
+}
+
+/**
+ * 背景图片配置
+ */
+export interface BackgroundImageConfig {
+  /** 图片 Data URL */
+  url: string
+  
+  /** 效果配置 */
+  effects: BackgroundImageEffects
+}
+
+/**
  * 背景配置
  */
 export interface BackgroundConfig {
+  /** 背景类型 */
+  type: 'color' | 'image'
+  
   /** 背景颜色 */
   color: string
   
-  /** 透明度 (0-100) */
+  /** 透明度 (0-100) - 仅用于纯色背景 */
   opacity: number
+  
+  /** 图片背景配置 */
+  image?: BackgroundImageConfig
 }
 
 /**
@@ -78,8 +112,20 @@ export const DEFAULT_CANVAS_SIZE: CanvasSize = {
  * 默认透明，显示棋盘格背景
  */
 export const DEFAULT_BACKGROUND_CONFIG: BackgroundConfig = {
+  type: 'color',
   color: '#ffffff',
-  opacity: 0
+  opacity: 0,
+  image: undefined
+}
+
+/**
+ * 默认背景图片效果配置
+ */
+export const DEFAULT_BACKGROUND_IMAGE_EFFECTS: BackgroundImageEffects = {
+  opacity: 100,
+  blur: 0,
+  brightness: 100,
+  contrast: 100
 }
 
 /**

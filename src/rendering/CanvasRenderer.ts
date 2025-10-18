@@ -53,17 +53,20 @@ interface ImageDrawInfo {
  * Canvas渲染器
  */
 export class CanvasRenderer {
+  /** 背景图片缓存 */
+  private static bgImageCache: Map<string, HTMLImageElement> = new Map()
+  
   /**
    * 渲染完整画布
    */
-  static render(options: RenderOptions): void {
+  static async render(options: RenderOptions): Promise<void> {
     const { ctx, layout, images, texts, state } = options
     
     // 清空画布
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     
-    // 1. 绘制背景
-    this.renderBackground(ctx, state)
+    // 1. 绘制背景（可能是异步的）
+    await this.renderBackground(ctx, state)
     
     // 2. 绘制图片网格
     this.renderImages(ctx, layout, images, state)
@@ -74,19 +77,71 @@ export class CanvasRenderer {
   
   /**
    * 绘制背景
-   * 参考demo中的背景绘制逻辑
+   * 支持纯色和图片两种模式
    */
-  private static renderBackground(
+  private static async renderBackground(
     ctx: CanvasRenderingContext2D,
     state: CanvasState
-  ): void {
+  ): Promise<void> {
     const { background } = state
+    const { width, height } = ctx.canvas
     
     ctx.save()
-    ctx.globalAlpha = background.opacity / 100
-    ctx.fillStyle = background.color
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    
+    if (background.type === 'color') {
+      // 纯色背景
+      ctx.globalAlpha = background.opacity / 100
+      ctx.fillStyle = background.color
+      ctx.fillRect(0, 0, width, height)
+    } else if (background.type === 'image' && background.image) {
+      // 图片背景
+      try {
+        const img = await this.loadBackgroundImage(background.image.url)
+        const { opacity, blur, brightness, contrast } = background.image.effects
+        
+        // 应用效果
+        ctx.globalAlpha = opacity / 100
+        ctx.filter = `blur(${blur}px) brightness(${brightness}%) contrast(${contrast}%)`
+        
+        // 拉伸填充模式
+        ctx.drawImage(img, 0, 0, width, height)
+        
+        // 重置滤镜
+        ctx.filter = 'none'
+      } catch (error) {
+        console.error('背景图片加载失败:', error)
+        // 降级：绘制纯色背景
+        ctx.globalAlpha = background.opacity / 100
+        ctx.fillStyle = background.color
+        ctx.fillRect(0, 0, width, height)
+      }
+    }
+    
     ctx.restore()
+  }
+  
+  /**
+   * 加载背景图片（带缓存）
+   */
+  private static loadBackgroundImage(url: string): Promise<HTMLImageElement> {
+    // 检查缓存
+    const cached = this.bgImageCache.get(url)
+    if (cached && cached.complete) {
+      return Promise.resolve(cached)
+    }
+    
+    // 加载新图片
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        this.bgImageCache.set(url, img)
+        resolve(img)
+      }
+      img.onerror = () => {
+        reject(new Error('图片加载失败'))
+      }
+      img.src = url
+    })
   }
   
   /**
@@ -385,7 +440,7 @@ export class CanvasRenderer {
 /**
  * 快捷渲染函数
  */
-export function renderCanvas(options: RenderOptions): void {
-  CanvasRenderer.render(options)
+export function renderCanvas(options: RenderOptions): Promise<void> {
+  return CanvasRenderer.render(options)
 }
 

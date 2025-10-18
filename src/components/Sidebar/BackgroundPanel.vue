@@ -6,64 +6,195 @@
         <h3 class="section-title">背景设置</h3>
       </div>
       
-      <!-- 背景颜色 -->
+      <!-- 类型切换 -->
       <div class="control-group">
-        <label class="control-label">背景颜色</label>
-        <div class="color-grid">
-          <div
-            v-for="color in presetColors"
-            :key="color"
-            :class="['color-item', { active: store.bgColor === color }]"
-            :style="{ background: color }"
-            @click="store.setBgColor(color)"
-          >
-            <Icon v-if="store.bgColor === color" name="check" size="sm" />
-          </div>
-          <div class="color-item color-picker-trigger" @click="triggerColorPicker">
-            <input
-              ref="colorInput"
-              type="color"
-              :value="store.bgColor"
-              @input="onColorChange"
-              style="display: none"
-            >
-            <div class="color-picker-preview" :style="{ background: store.bgColor }"></div>
-            <span class="color-picker-plus">+</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 背景透明度 */
-      <div class="control-group">
-        <div class="control-label-row">
-          <label class="control-label">背景透明度</label>
-          <span class="control-value">{{ store.bgOpacity }}%</span>
-        </div>
-        <input
-          type="range"
-          class="control-slider"
-          min="0"
-          max="100"
-          :value="store.bgOpacity"
-          @input="onOpacityChange"
-        >
-      </div>
-      
-      <!-- 快捷预设 -->
-      <div class="control-group">
-        <label class="control-label">快捷预设</label>
-        <div class="preset-grid">
+        <div class="type-tabs">
           <button
-            v-for="preset in presets"
-            :key="preset.name"
-            class="preset-item"
-            @click="applyPreset(preset)"
+            :class="['type-tab', { active: store.bgType === 'color' }]"
+            @click="store.setBgType('color')"
           >
-            <div class="preset-preview" :style="{ background: preset.color }"></div>
-            <span class="preset-name">{{ preset.name }}</span>
+            <Icon name="palette" size="sm" />
+            <span>纯色</span>
+          </button>
+          <button
+            :class="['type-tab', { active: store.bgType === 'image' }]"
+            @click="store.setBgType('image')"
+          >
+            <Icon name="image" size="sm" />
+            <span>图片</span>
           </button>
         </div>
       </div>
+      
+      <!-- 纯色模式 -->
+      <template v-if="store.bgType === 'color'">
+        <!-- 背景颜色 -->
+        <div class="control-group">
+          <label class="control-label">背景颜色</label>
+          <div class="color-grid">
+            <div
+              v-for="color in presetColors"
+              :key="color"
+              :class="['color-item', { active: store.bgColor === color }]"
+              :style="{ background: color }"
+              @click="store.setBgColor(color)"
+            >
+              <Icon v-if="store.bgColor === color" name="check" size="sm" />
+            </div>
+            <div class="color-item color-picker-trigger" @click="triggerColorPicker">
+              <input
+                ref="colorInput"
+                type="color"
+                :value="store.bgColor"
+                @input="onColorChange"
+                style="display: none"
+              >
+              <div class="color-picker-preview" :style="{ background: store.bgColor }"></div>
+              <span class="color-picker-plus">+</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 背景透明度 -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <label class="control-label">背景透明度</label>
+            <span class="control-value">{{ store.bgOpacity }}%</span>
+          </div>
+          <input
+            type="range"
+            class="control-slider"
+            min="0"
+            max="100"
+            :value="store.bgOpacity"
+            @input="onOpacityChange"
+          >
+        </div>
+        
+        <!-- 快捷预设 -->
+        <div class="control-group">
+          <label class="control-label">快捷预设</label>
+          <div class="preset-grid">
+            <button
+              v-for="preset in presets"
+              :key="preset.name"
+              class="preset-item"
+              @click="applyPreset(preset)"
+            >
+              <div class="preset-preview" :style="{ background: preset.color }"></div>
+              <span class="preset-name">{{ preset.name }}</span>
+            </button>
+          </div>
+        </div>
+      </template>
+      
+      <!-- 图片模式 -->
+      <template v-else>
+        <!-- 上传区域 -->
+        <div v-if="!store.bgImageUrl" class="control-group">
+          <div
+            :class="['upload-area', { 'upload-dragging': isDragging }]"
+            @click="triggerUpload"
+            @drop="onDrop"
+            @dragover.prevent="isDragging = true"
+            @dragleave="isDragging = false"
+            @dragend="isDragging = false"
+          >
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              style="display: none"
+              @change="onFileChange"
+            >
+            <div class="upload-icon">
+              <Icon :name="isDragging ? 'download' : 'upload'" size="lg" />
+            </div>
+            <div class="upload-text">
+              <p class="upload-primary">{{ isDragging ? '松开上传' : '点击或拖拽图片' }}</p>
+              <p class="upload-secondary">支持 JPG、PNG、GIF</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 图片预览 -->
+        <div v-else class="control-group">
+          <label class="control-label">背景图片</label>
+          <div class="image-preview-container">
+            <img :src="store.bgImageUrl" alt="背景图片" class="image-preview">
+            <button class="image-remove" @click="removeBgImage">
+              <Icon name="trash" size="sm" />
+            </button>
+          </div>
+        </div>
+        
+        <!-- 图片效果 -->
+        <template v-if="store.bgImageUrl">
+          <!-- 透明度 -->
+          <div class="control-group">
+            <div class="control-label-row">
+              <label class="control-label">透明度</label>
+              <span class="control-value">{{ store.bgImageEffects.opacity }}%</span>
+            </div>
+            <input
+              type="range"
+              class="control-slider"
+              min="0"
+              max="100"
+              :value="store.bgImageEffects.opacity"
+              @input="onImageOpacityChange"
+            >
+          </div>
+          
+          <!-- 模糊 -->
+          <div class="control-group">
+            <div class="control-label-row">
+              <label class="control-label">模糊</label>
+              <span class="control-value">{{ store.bgImageEffects.blur }}px</span>
+            </div>
+            <input
+              type="range"
+              class="control-slider"
+              min="0"
+              max="20"
+              :value="store.bgImageEffects.blur"
+              @input="onBlurChange"
+            >
+          </div>
+          
+          <!-- 亮度 -->
+          <div class="control-group">
+            <div class="control-label-row">
+              <label class="control-label">亮度</label>
+              <span class="control-value">{{ store.bgImageEffects.brightness }}%</span>
+            </div>
+            <input
+              type="range"
+              class="control-slider"
+              min="0"
+              max="200"
+              :value="store.bgImageEffects.brightness"
+              @input="onBrightnessChange"
+            >
+          </div>
+          
+          <!-- 对比度 -->
+          <div class="control-group">
+            <div class="control-label-row">
+              <label class="control-label">对比度</label>
+              <span class="control-value">{{ store.bgImageEffects.contrast }}%</span>
+            </div>
+            <input
+              type="range"
+              class="control-slider"
+              min="0"
+              max="200"
+              :value="store.bgImageEffects.contrast"
+              @input="onContrastChange"
+            >
+          </div>
+        </template>
+      </template>
     </div>
   </div>
 </template>
@@ -72,9 +203,12 @@
 import { ref } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import Icon from '@/components/Common/Icon.vue'
+import { toast } from '@/composables/useToast'
 
 const store = useAppStore()
 const colorInput = ref<HTMLInputElement>()
+const fileInput = ref<HTMLInputElement>()
+const isDragging = ref(false)
 
 /** 预设颜色 */
 const presetColors = [
@@ -120,6 +254,91 @@ function applyPreset(preset: Preset) {
   if (preset.opacity !== undefined) {
     store.setBgOpacity(preset.opacity)
   }
+}
+
+/** 触发文件选择 */
+function triggerUpload() {
+  fileInput.value?.click()
+}
+
+/** 文件选择变化 */
+async function onFileChange(e: Event) {
+  const files = (e.target as HTMLInputElement).files
+  if (files && files.length > 0) {
+    await handleFile(files[0])
+    // 清空input，允许重复选择同一文件
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+  }
+}
+
+/** 拖拽放置 */
+async function onDrop(e: DragEvent) {
+  e.preventDefault()
+  isDragging.value = false
+  
+  const files = e.dataTransfer?.files
+  if (files && files.length > 0) {
+    await handleFile(files[0])
+  }
+}
+
+/** 处理文件 */
+async function handleFile(file: File) {
+  try {
+    if (!file.type.startsWith('image/')) {
+      toast.warning('请选择图片文件')
+      return
+    }
+    
+    // 读取为 Data URL
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const url = e.target?.result as string
+      if (url) {
+        store.setBgImage(url)
+        toast.success('背景图片已上传')
+      }
+    }
+    reader.onerror = () => {
+      toast.error('图片读取失败')
+    }
+    reader.readAsDataURL(file)
+  } catch (error) {
+    console.error('图片处理失败:', error)
+    toast.error('图片处理失败，请重试')
+  }
+}
+
+/** 删除背景图片 */
+function removeBgImage() {
+  store.clearBgImage()
+  toast.info('已清除背景图片')
+}
+
+/** 图片透明度变化 */
+function onImageOpacityChange(e: Event) {
+  const value = parseInt((e.target as HTMLInputElement).value)
+  store.setBgImageOpacity(value)
+}
+
+/** 模糊变化 */
+function onBlurChange(e: Event) {
+  const value = parseInt((e.target as HTMLInputElement).value)
+  store.setBgImageBlur(value)
+}
+
+/** 亮度变化 */
+function onBrightnessChange(e: Event) {
+  const value = parseInt((e.target as HTMLInputElement).value)
+  store.setBgImageBrightness(value)
+}
+
+/** 对比度变化 */
+function onContrastChange(e: Event) {
+  const value = parseInt((e.target as HTMLInputElement).value)
+  store.setBgImageContrast(value)
 }
 </script>
 
@@ -172,6 +391,43 @@ function applyPreset(preset: Preset) {
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-500);
   font-family: var(--font-family-mono);
+}
+
+/* 类型切换 */
+.type-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+  padding: 4px;
+  background: var(--color-neutral-100);
+  border-radius: var(--radius-md);
+}
+
+.type-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-neutral-600);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.type-tab:hover {
+  color: var(--color-neutral-800);
+  background: var(--color-neutral-200);
+}
+
+.type-tab.active {
+  background: var(--color-neutral-0);
+  color: var(--color-primary-500);
+  box-shadow: var(--shadow-sm);
 }
 
 /* 颜色网格 */
@@ -273,5 +529,178 @@ function applyPreset(preset: Preset) {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--color-neutral-700);
+}
+
+/* 上传区域 */
+.upload-area {
+  position: relative;
+  padding: var(--spacing-6);
+  border: 2px dashed var(--border-color-base);
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-50);
+  cursor: pointer;
+  transition: var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  overflow: hidden;
+}
+
+.upload-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-info-bg) 100%);
+  opacity: 0;
+  transition: var(--transition-base);
+}
+
+.upload-area:hover {
+  border-color: var(--color-primary-400);
+  background: var(--color-neutral-0);
+}
+
+.upload-area:hover::before {
+  opacity: 0.3;
+}
+
+.upload-area.upload-dragging {
+  border-color: var(--color-primary-500);
+  border-style: solid;
+  background: var(--color-primary-50);
+  transform: scale(1.02);
+}
+
+.upload-area.upload-dragging::before {
+  opacity: 1;
+}
+
+.upload-icon {
+  position: relative;
+  z-index: 1;
+  color: var(--color-primary-500);
+  transition: var(--transition-transform);
+}
+
+.upload-area:hover .upload-icon {
+  transform: translateY(-4px);
+}
+
+.upload-area.upload-dragging .upload-icon {
+  animation: bounce var(--duration-slower) var(--ease-in-out) infinite;
+}
+
+.upload-text {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.upload-primary {
+  margin: 0 0 var(--spacing-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-800);
+}
+
+.upload-secondary {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-500);
+}
+
+/* 图片预览 */
+.image-preview-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-color-base);
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-remove {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--color-error);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-md);
+}
+
+.image-preview-container:hover .image-remove {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.image-remove:hover {
+  background: var(--color-error);
+  color: var(--color-neutral-0);
+  transform: scale(1.1);
+}
+
+/* 滑块 */
+.control-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-200);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.control-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-500);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.control-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-md);
+}
+
+.control-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-500);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.control-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-md);
 }
 </style>

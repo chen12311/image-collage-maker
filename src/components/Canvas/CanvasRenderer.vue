@@ -50,7 +50,7 @@ function calculateScale() {
 }
 
 /** 渲染画布 */
-function render() {
+async function render() {
   if (!canvasRef.value) return
   
   const ctx = canvasRef.value.getContext('2d')
@@ -63,8 +63,8 @@ function render() {
     store.canvasHeight
   )
   
-  // 渲染
-  Renderer.render({
+  // 渲染（异步）
+  await Renderer.render({
     ctx,
     layout,
     images: store.images,
@@ -91,8 +91,11 @@ watch(
     store.spacing,
     store.padding,
     store.radius,
+    store.bgType,
     store.bgColor,
     store.bgOpacity,
+    store.bgImageUrl,
+    store.bgImageEffects,
     store.globalOpacity,
     store.imageOpacity,
     store.canvasWidth,

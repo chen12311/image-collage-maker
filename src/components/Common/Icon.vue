@@ -239,6 +239,46 @@ const iconComponents: Record<string, any> = {
       h('polyline', { points: '23 4 23 10 17 10' }),
       h('path', { d: 'M20.49 15a9 9 0 1 1-2.12-9.36L23 10' })
     ])
+  }),
+  
+  minus: defineComponent({
+    render: () => h('line', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', x1: '5', y1: '12', x2: '19', y2: '12' })
+  }),
+  
+  plus: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('line', { x1: '12', y1: '5', x2: '12', y2: '19' }),
+      h('line', { x1: '5', y1: '12', x2: '19', y2: '12' })
+    ])
+  }),
+  
+  maximize: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('path', { d: 'M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3' })
+    ])
+  }),
+  
+  fit: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('polyline', { points: '4 14 10 14 10 20' }),
+      h('polyline', { points: '20 10 14 10 14 4' }),
+      h('line', { x1: '14', y1: '10', x2: '21', y2: '3' }),
+      h('line', { x1: '3', y1: '21', x2: '10', y2: '14' })
+    ])
+  }),
+  
+  lock: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('rect', { x: '3', y: '11', width: '18', height: '11', rx: '2', ry: '2' }),
+      h('path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' })
+    ])
+  }),
+  
+  unlock: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('rect', { x: '3', y: '11', width: '18', height: '11', rx: '2', ry: '2' }),
+      h('path', { d: 'M7 11V7a5 5 0 0 1 9.9-1' })
+    ])
   })
 }
 

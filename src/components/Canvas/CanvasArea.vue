@@ -39,6 +39,57 @@
           <span class="zoom-text">缩放：{{ store.canvasScalePercent }}%</span>
         </div>
         
+        <!-- 缩放控制按钮组 -->
+        <div class="zoom-controls">
+          <Tooltip content="缩小 (Ctrl+-)" placement="bottom">
+            <button 
+              class="zoom-btn" 
+              :disabled="store.canvasScale <= 0.1"
+              @click="store.zoomOut"
+            >
+              <Icon name="minus" size="sm" />
+            </button>
+          </Tooltip>
+          
+          <Tooltip content="放大 (Ctrl++)" placement="bottom">
+            <button 
+              class="zoom-btn"
+              :disabled="store.canvasScale >= 2"
+              @click="store.zoomIn"
+            >
+              <Icon name="plus" size="sm" />
+            </button>
+          </Tooltip>
+          
+          <Tooltip content="重置到100% (Ctrl+0)" placement="bottom">
+            <button class="zoom-btn" @click="store.resetZoom">
+              <Icon name="maximize" size="sm" />
+            </button>
+          </Tooltip>
+          
+          <Tooltip content="适应窗口" placement="bottom">
+            <button 
+              class="zoom-btn"
+              :class="{ active: store.autoFit }"
+              @click="store.fitToView"
+            >
+              <Icon name="fit" size="sm" />
+            </button>
+          </Tooltip>
+          
+          <div class="zoom-divider"></div>
+          
+          <Tooltip content="自动适配" placement="bottom">
+            <button 
+              class="zoom-btn zoom-toggle"
+              :class="{ active: store.autoFit }"
+              @click="store.toggleAutoFit"
+            >
+              <Icon :name="store.autoFit ? 'lock' : 'unlock'" size="sm" />
+            </button>
+          </Tooltip>
+        </div>
+        
         <!-- 分隔符 -->
         <div class="toolbar-divider"></div>
         
@@ -90,8 +141,11 @@
     </div>
     
     <!-- 画布容器 -->
-    <div class="canvas-container checkerboard">
-      <div class="canvas-wrapper">
+    <div ref="canvasContainer" class="canvas-container checkerboard">
+      <div 
+        class="canvas-wrapper"
+        :style="{ transform: `scale(${store.canvasScale})` }"
+      >
         <CanvasRenderer ref="canvasRenderer" />
         <CanvasInteractionLayer />
         <TextInteractionLayer />
@@ -101,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import CanvasRenderer from './CanvasRenderer.vue'
 import CanvasInteractionLayer from './CanvasInteractionLayer.vue'
@@ -115,6 +169,7 @@ import { useKeyboard, SHORTCUTS } from '@/composables/useKeyboard'
 
 const store = useAppStore()
 const canvasRenderer = ref<InstanceType<typeof CanvasRenderer>>()
+const canvasContainer = ref<HTMLDivElement>()
 const { registerShortcut } = useKeyboard()
 
 /** 画布尺寸预设选项 */
@@ -201,6 +256,22 @@ async function exportImage() {
   }
 }
 
+/** 滚轮缩放处理 */
+function handleWheel(event: WheelEvent) {
+  // 只在按住Ctrl/Cmd时触发缩放
+  if (!event.ctrlKey && !event.metaKey) return
+  
+  event.preventDefault()
+  
+  // 关闭自动适配
+  store.autoFit = false
+  
+  // 根据滚轮方向缩放（deltaY > 0 向下滚，缩小；< 0 向上滚，放大）
+  const delta = event.deltaY > 0 ? -0.05 : 0.05
+  const newScale = Math.max(0.1, Math.min(2, store.canvasScale + delta))
+  store.setCanvasScale(newScale)
+}
+
 // 注册撤销/重做快捷键
 registerShortcut({
   ...SHORTCUTS.UNDO,
@@ -216,6 +287,44 @@ registerShortcut({
 registerShortcut({
   ...SHORTCUTS.SAVE,
   handler: () => exportImage()
+})
+
+// 注册缩放快捷键
+registerShortcut({
+  key: '=', // 实际是 +
+  ctrl: true,
+  description: '放大',
+  handler: () => store.zoomIn()
+})
+
+registerShortcut({
+  key: '-',
+  ctrl: true,
+  description: '缩小',
+  handler: () => store.zoomOut()
+})
+
+registerShortcut({
+  key: '0',
+  ctrl: true,
+  description: '重置缩放',
+  handler: () => store.resetZoom()
+})
+
+/** 组件挂载时绑定滚轮事件 */
+onMounted(() => {
+  const container = canvasContainer.value
+  if (container) {
+    container.addEventListener('wheel', handleWheel, { passive: false })
+  }
+})
+
+/** 组件卸载时清理 */
+onUnmounted(() => {
+  const container = canvasContainer.value
+  if (container) {
+    container.removeEventListener('wheel', handleWheel)
+  }
 })
 </script>
 
@@ -334,6 +443,58 @@ registerShortcut({
   white-space: nowrap;
 }
 
+/* 缩放控制按钮组 */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0 var(--spacing-2);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color-light);
+}
+
+.zoom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-neutral-600);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.zoom-btn:hover:not(:disabled) {
+  background: var(--color-neutral-100);
+  color: var(--color-primary-500);
+}
+
+.zoom-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.zoom-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoom-btn.active {
+  background: var(--color-primary-500);
+  color: var(--color-neutral-0);
+}
+
+.zoom-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color-light);
+  margin: 0 var(--spacing-1);
+}
+
 /* 格式选择器 */
 .format-selector {
   display: flex;
@@ -419,6 +580,8 @@ registerShortcut({
   /* 移除阴影和圆角，让棋盘格清晰显示 */
   overflow: hidden;
   animation: fade-in var(--duration-base) var(--ease-out);
+  transform-origin: center center;
+  transition: transform 0.2s ease-out;
 }
 
 /* 淡入淡出动画 */

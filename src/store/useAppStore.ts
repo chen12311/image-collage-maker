@@ -95,6 +95,9 @@ export const useAppStore = defineStore('app', () => {
   /** 画布缩放比例（1 = 100%） */
   const canvasScale = ref(1)
   
+  /** 是否自动适配画布缩放 */
+  const autoFit = ref(true)
+  
   // ============================================================================
   // 历史管理器
   // ============================================================================
@@ -367,7 +370,48 @@ export const useAppStore = defineStore('app', () => {
    * 设置画布缩放比例
    */
   function setCanvasScale(scale: number) {
-    canvasScale.value = Math.max(0.1, Math.min(1, scale))
+    canvasScale.value = Math.max(0.1, Math.min(2, scale))
+  }
+  
+  /**
+   * 放大画布（+10%）
+   */
+  function zoomIn() {
+    autoFit.value = false
+    const newScale = Math.min(2, canvasScale.value + 0.1)
+    setCanvasScale(newScale)
+  }
+  
+  /**
+   * 缩小画布（-10%）
+   */
+  function zoomOut() {
+    autoFit.value = false
+    const newScale = Math.max(0.1, canvasScale.value - 0.1)
+    setCanvasScale(newScale)
+  }
+  
+  /**
+   * 重置缩放到100%
+   */
+  function resetZoom() {
+    autoFit.value = false
+    setCanvasScale(1)
+  }
+  
+  /**
+   * 适应窗口（触发自动计算）
+   */
+  function fitToView() {
+    autoFit.value = true
+    // calculateScale 会在 CanvasRenderer 组件中自动触发
+  }
+  
+  /**
+   * 切换自动适配模式
+   */
+  function toggleAutoFit() {
+    autoFit.value = !autoFit.value
   }
   
   // ============================================================================
@@ -866,6 +910,7 @@ export const useAppStore = defineStore('app', () => {
     texts,
     exportFormat,
     canvasScale,
+    autoFit,
     longImageMode,
     longImageDirection,
     sizeCalculationMode,
@@ -905,6 +950,11 @@ export const useAppStore = defineStore('app', () => {
     setImageOpacity,
     setExportFormat,
     setCanvasScale,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    fitToView,
+    toggleAutoFit,
     toggleLongImageMode,
     setLongImageDirection,
     setSizeCalculationMode,

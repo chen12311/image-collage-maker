@@ -3,7 +3,6 @@
     ref="canvasRef"
     :width="store.canvasWidth"
     :height="store.canvasHeight"
-    :style="{ transform: `scale(${store.canvasScale})` }"
     class="canvas"
   ></canvas>
 </template>
@@ -21,6 +20,9 @@ let isMounted = ref(false) // 组件挂载状态标志
 
 /** 计算画布缩放比例 */
 function calculateScale() {
+  // 只在自动适配模式下才计算
+  if (!store.autoFit) return
+  
   // 防止组件卸载后执行
   if (!isMounted.value || !canvasRef.value) return
   
@@ -123,6 +125,16 @@ watch(
   }
 )
 
+/** 监听自动适配模式切换 */
+watch(
+  () => store.autoFit,
+  (newAutoFit) => {
+    if (newAutoFit) {
+      nextTick(() => calculateScale())
+    }
+  }
+)
+
 /** 组件挂载后初始渲染 */
 onMounted(() => {
   isMounted.value = true
@@ -165,8 +177,6 @@ onUnmounted(() => {
   display: block;
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transform-origin: center center;
-  transition: transform 0.2s ease-out;
 }
 </style>
 

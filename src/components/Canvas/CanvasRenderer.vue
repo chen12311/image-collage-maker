@@ -93,7 +93,13 @@ watch(
     store.canvasWidth,
     store.canvasHeight,
     store.images,
-    store.texts
+    store.texts,
+    // 长图模式状态
+    store.longImageMode,
+    store.longImageDirection,
+    store.sizeCalculationMode,
+    store.fixedWidth,
+    store.fixedHeight
   ],
   () => {
     nextTick(() => render())

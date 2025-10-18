@@ -5,7 +5,7 @@
  */
 
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
   type LayoutConfig,
   type ImageElement,
@@ -19,6 +19,18 @@ import {
   DEFAULT_BACKGROUND_CONFIG,
   DEFAULT_OPACITY_CONFIG
 } from '@/core/models'
+import { 
+  LongImageLayoutGenerator,
+  type LongImageDirection 
+} from '@/layout/LongImageLayoutGenerator'
+import { 
+  CanvasSizeCalculator,
+  type SizeCalculationMode 
+} from '@/core/canvas/CanvasSizeCalculator'
+import {
+  type LongImagePreset,
+  getPresetById
+} from '@/core/presets/LongImagePresets'
 
 /**
  * 应用Store
@@ -71,16 +83,58 @@ export const useAppStore = defineStore('app', () => {
   const canvasScale = ref(1)
   
   // ============================================================================
+  // 长图模式状态
+  // ============================================================================
+  
+  /** 是否启用长图模式 */
+  const longImageMode = ref(false)
+  
+  /** 长图方向 */
+  const longImageDirection = ref<LongImageDirection>('vertical')
+  
+  /** 画布尺寸计算模式 */
+  const sizeCalculationMode = ref<SizeCalculationMode>('preset')
+  
+  /** 固定宽度（竖向长图） */
+  const fixedWidth = ref(1080)
+  
+  /** 固定高度（横向长图） */
+  const fixedHeight = ref(1080)
+  
+  // ============================================================================
   // 计算属性
   // ============================================================================
   
   /** 布局配置 */
-  const layoutConfig = computed<LayoutConfig>(() => createLayoutConfig(
-    layoutType.value,
-    spacing.value,
-    padding.value,
-    radius.value
-  ))
+  const layoutConfig = computed<LayoutConfig>(() => {
+    // 长图模式：动态生成布局
+    if (longImageMode.value) {
+      const validImages = images.value.filter(img => img && img !== null)
+      // 没有图片时至少生成1个单元格，让用户看到布局变化
+      const imageCount = Math.max(validImages.length, 1)
+      const template = LongImageLayoutGenerator.generate({
+        imageCount: imageCount,
+        direction: longImageDirection.value,
+        seamless: spacing.value === 0
+      })
+      
+      return {
+        type: template.id,
+        cells: template.cells,
+        spacing: spacing.value,
+        padding: padding.value,
+        radius: radius.value
+      }
+    }
+    
+    // 普通模式：使用预设布局
+    return createLayoutConfig(
+      layoutType.value,
+      spacing.value,
+      padding.value,
+      radius.value
+    )
+  })
   
   /** 画布尺寸 */
   const canvasSize = computed<CanvasSize>(() => ({
@@ -230,6 +284,164 @@ export const useAppStore = defineStore('app', () => {
    */
   function setCanvasScale(scale: number) {
     canvasScale.value = Math.max(0.1, Math.min(1, scale))
+  }
+  
+  // ============================================================================
+  // 长图模式操作
+  // ============================================================================
+  
+  /**
+   * 启用/禁用长图模式
+   */
+  function toggleLongImageMode(enabled?: boolean) {
+    longImageMode.value = enabled !== undefined ? enabled : !longImageMode.value
+    
+    // 启用长图模式时，自动设置为自动尺寸模式
+    if (longImageMode.value) {
+      sizeCalculationMode.value = 'auto'
+      updateCanvasSizeForLongImage()
+    }
+  }
+  
+  /**
+   * 设置长图方向
+   */
+  function setLongImageDirection(direction: LongImageDirection) {
+    longImageDirection.value = direction
+    
+    // 更新画布尺寸
+    if (longImageMode.value) {
+      updateCanvasSizeForLongImage()
+    }
+  }
+  
+  /**
+   * 设置尺寸计算模式
+   */
+  function setSizeCalculationMode(mode: SizeCalculationMode) {
+    sizeCalculationMode.value = mode
+    
+    // 更新画布尺寸
+    if (longImageMode.value && mode !== 'preset') {
+      updateCanvasSizeForLongImage()
+    }
+  }
+  
+  /**
+   * 设置固定宽度
+   */
+  function setFixedWidth(width: number) {
+    fixedWidth.value = Math.max(100, Math.min(4096, width))
+    
+    // 更新画布尺寸
+    if (longImageMode.value && sizeCalculationMode.value === 'fixed-width') {
+      updateCanvasSizeForLongImage()
+    }
+  }
+  
+  /**
+   * 设置固定高度
+   */
+  function setFixedHeight(height: number) {
+    fixedHeight.value = Math.max(100, Math.min(4096, height))
+    
+    // 更新画布尺寸
+    if (longImageMode.value && sizeCalculationMode.value === 'fixed-height') {
+      updateCanvasSizeForLongImage()
+    }
+  }
+  
+  /**
+   * 更新长图模式下的画布尺寸
+   */
+  function updateCanvasSizeForLongImage() {
+    if (!longImageMode.value) return
+    
+    const validImages = images.value.filter(img => img && img !== null)
+    if (validImages.length === 0) return
+    
+    // 根据计算模式更新画布尺寸
+    if (sizeCalculationMode.value === 'preset') {
+      // 预设模式不自动计算
+      return
+    }
+    
+    const newSize = CanvasSizeCalculator.calculate(validImages, {
+      mode: sizeCalculationMode.value,
+      direction: longImageDirection.value,
+      fixedWidth: fixedWidth.value,
+      fixedHeight: fixedHeight.value,
+      spacing: spacing.value,
+      padding: padding.value
+    })
+    
+    setCanvasSize(newSize.width, newSize.height)
+  }
+  
+  /**
+   * 快速启用竖向长图模式
+   */
+  function enableVerticalLongImage() {
+    longImageMode.value = true
+    longImageDirection.value = 'vertical'
+    sizeCalculationMode.value = 'fixed-width'
+    fixedWidth.value = 1080
+    spacing.value = 0
+    updateCanvasSizeForLongImage()
+  }
+  
+  /**
+   * 快速启用横向长图模式
+   */
+  function enableHorizontalLongImage() {
+    longImageMode.value = true
+    longImageDirection.value = 'horizontal'
+    sizeCalculationMode.value = 'fixed-height'
+    fixedHeight.value = 1080
+    spacing.value = 0
+    updateCanvasSizeForLongImage()
+  }
+  
+  /**
+   * 应用场景预设
+   */
+  function applyPreset(presetId: string) {
+    const preset = getPresetById(presetId)
+    if (!preset) {
+      console.warn(`预设不存在: ${presetId}`)
+      return
+    }
+    
+    // 启用长图模式
+    longImageMode.value = true
+    
+    // 应用预设配置
+    longImageDirection.value = preset.direction
+    sizeCalculationMode.value = preset.sizeMode
+    spacing.value = preset.spacing
+    padding.value = preset.padding
+    radius.value = preset.radius
+    
+    // 应用固定宽度/高度
+    if (preset.fixedWidth) {
+      fixedWidth.value = preset.fixedWidth
+    }
+    if (preset.fixedHeight) {
+      fixedHeight.value = preset.fixedHeight
+    }
+    
+    // 应用背景颜色
+    if (preset.bgColor) {
+      bgColor.value = preset.bgColor
+    }
+    
+    // 应用推荐尺寸（如果有）
+    if (preset.recommendedSize && preset.sizeMode === 'preset') {
+      setCanvasSize(preset.recommendedSize.width, preset.recommendedSize.height)
+    } else {
+      // 自动计算尺寸
+      updateCanvasSizeForLongImage()
+    }
   }
   
   // ============================================================================
@@ -488,6 +700,22 @@ export const useAppStore = defineStore('app', () => {
   }
   
   // ============================================================================
+  // 监听器
+  // ============================================================================
+  
+  /**
+   * 监听图片变化，在长图模式下自动更新画布尺寸
+   */
+  watch(
+    () => images.value.length,
+    () => {
+      if (longImageMode.value && sizeCalculationMode.value !== 'preset') {
+        updateCanvasSizeForLongImage()
+      }
+    }
+  )
+  
+  // ============================================================================
   // 返回Store API
   // ============================================================================
   
@@ -507,6 +735,11 @@ export const useAppStore = defineStore('app', () => {
     texts,
     exportFormat,
     canvasScale,
+    longImageMode,
+    longImageDirection,
+    sizeCalculationMode,
+    fixedWidth,
+    fixedHeight,
     
     // 计算属性
     layoutConfig,
@@ -532,6 +765,15 @@ export const useAppStore = defineStore('app', () => {
     setImageOpacity,
     setExportFormat,
     setCanvasScale,
+    toggleLongImageMode,
+    setLongImageDirection,
+    setSizeCalculationMode,
+    setFixedWidth,
+    setFixedHeight,
+    updateCanvasSizeForLongImage,
+    enableVerticalLongImage,
+    enableHorizontalLongImage,
+    applyPreset,
     addImage,
     addImages,
     insertImagesAt,

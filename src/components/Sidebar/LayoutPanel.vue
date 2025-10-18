@@ -1,5 +1,50 @@
 <template>
   <div class="layout-panel">
+    <!-- 长图模式 -->
+    <div class="tool-section">
+      <!-- 长图模式开关 -->
+      <div class="control-group">
+        <div class="toggle-row">
+          <label class="toggle-label">
+            <Icon name="layout" size="sm" />
+            <span>启用长图模式</span>
+          </label>
+          <button
+            :class="['toggle-btn', { active: store.longImageMode }]"
+            @click="store.toggleLongImageMode()"
+          >
+            <span class="toggle-slider"></span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 长图模式配置（仅在启用时显示） -->
+      <Transition name="fade">
+        <div v-if="store.longImageMode" class="long-image-config">
+          <!-- 方向选择 -->
+          <div class="control-group">
+            <label class="control-label">拼接方向</label>
+            <div class="direction-selector">
+              <button
+                :class="['direction-btn', { active: store.longImageDirection === 'vertical' }]"
+                @click="store.setLongImageDirection('vertical')"
+              >
+                <Icon name="layout" size="md" style="transform: rotate(90deg)" />
+                <span>竖向</span>
+              </button>
+              <button
+                :class="['direction-btn', { active: store.longImageDirection === 'horizontal' }]"
+                @click="store.setLongImageDirection('horizontal')"
+              >
+                <Icon name="layout" size="md" />
+                <span>横向</span>
+          </button>
+        </div>
+      </div>
+        </div>
+      </Transition>
+    </div>
+    
     <!-- 布局参数 -->
     <div class="tool-section">
       <div class="section-header">
@@ -56,8 +101,8 @@
       </div>
     </div>
     
-    <!-- 布局选择器 -->
-    <div class="tool-section layout-selector-section">
+    <!-- 布局选择器（长图模式下隐藏） -->
+    <div v-if="!store.longImageMode" class="tool-section layout-selector-section">
       <div class="section-header">
         <Icon name="grid" size="sm" />
         <h3 class="section-title">选择布局</h3>
@@ -324,5 +369,140 @@ function onRadiusChange(e: Event) {
 
 .scale-leave-active {
   animation: scale-out var(--duration-fast) var(--ease-in);
+}
+
+/* 长图模式样式 */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+  cursor: pointer;
+}
+
+.toggle-btn {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  padding: 0;
+  background: var(--color-neutral-300);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.toggle-btn:hover {
+  background: var(--color-neutral-400);
+}
+
+.toggle-btn.active {
+  background: var(--color-primary-500);
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-base);
+}
+
+.toggle-btn.active .toggle-slider {
+  left: 22px;
+}
+
+.long-image-config {
+  margin-top: var(--spacing-3);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border-color-light);
+  animation: fade-in var(--duration-base) var(--ease-out);
+}
+
+.direction-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+}
+
+.direction-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+  background: var(--color-neutral-0);
+  border: 2px solid var(--border-color-base);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.direction-btn:hover {
+  border-color: var(--color-primary-400);
+  background: var(--color-neutral-50);
+}
+
+.direction-btn.active {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-0);
+  background: var(--color-primary-500);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.quick-action-btn:hover {
+  background: var(--color-primary-600);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* 淡入淡出动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-in-out);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

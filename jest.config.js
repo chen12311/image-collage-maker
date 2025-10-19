@@ -19,7 +19,8 @@ export default {
   // 模块路径映射
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@/core/(.*)$': '<rootDir>/src/core/$1'
+    '^@/core/(.*)$': '<rootDir>/src/core/$1',
+    '^vue-i18n$': '<rootDir>/tests/__mocks__/vue-i18n.ts'
   },
   
   // 模块文件扩展名

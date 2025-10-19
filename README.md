@@ -164,6 +164,73 @@ src/
 - 组件使用Composition API（`<script setup>`）
 - 遵循Vue 3官方风格指南
 
+## 🧪 测试
+
+### 测试架构
+
+项目包含完整的测试体系，确保代码质量和功能稳定性：
+
+- **单元测试（Jest）**：测试核心算法和业务逻辑
+- **E2E测试（Playwright）**：测试关键用户流程
+
+### 运行测试
+
+```bash
+# 运行所有单元测试
+npm run test
+
+# 单元测试（监听模式）
+npm run test:watch
+
+# 生成覆盖率报告
+npm run test:coverage
+
+# 运行E2E测试
+npm run test:e2e
+
+# E2E测试（UI模式）
+npm run test:e2e:ui
+
+# E2E测试（调试模式）
+npm run test:e2e:debug
+
+# 运行所有测试
+npm run test:all
+```
+
+### 测试覆盖率目标
+
+- **Branches**: ≥ 80%
+- **Functions**: ≥ 85%
+- **Lines**: ≥ 80%
+- **Statements**: ≥ 80%
+
+### 测试文件组织
+
+```
+tests/
+├── setup.ts              # Jest测试环境配置
+├── unit/                 # 单元测试
+│   ├── composables/      # Composables测试
+│   │   ├── useKeyboard.test.ts
+│   │   ├── useToast.test.ts
+│   │   └── useResponsive.test.ts
+│   ├── core/             # 核心模块测试
+│   │   └── CanvasSizeCalculator.test.ts
+│   ├── history/          # 历史管理测试
+│   │   └── HistoryManager.test.ts
+│   ├── layout/           # 布局引擎测试
+│   │   ├── LayoutEngine.test.ts
+│   │   └── LongImageLayoutGenerator.test.ts
+│   ├── rendering/        # 渲染器测试
+│   │   └── CanvasRenderer.test.ts
+│   └── store/            # 状态管理测试
+│       └── useAppStore.test.ts
+└── e2e/                  # E2E测试
+    ├── image-upload.spec.ts
+    └── layout-switching.spec.ts
+```
+
 ## 🤝 贡献指南
 
 欢迎提交Issue和Pull Request！
@@ -174,7 +241,7 @@ src/
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启Pull Request
 
-## 📄 许可证
+## 📄 许可证 
 
 MIT License
 

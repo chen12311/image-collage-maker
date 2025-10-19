@@ -8,8 +8,13 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "jest",
+    "test:unit": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "npm run test:unit && npm run test:e2e"
   },
   "dependencies": {
     "pinia": "^2.1.0",

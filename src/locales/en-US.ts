@@ -123,10 +123,13 @@ export default {
     redo: 'Redo',
     export: 'Export Image',
     deleteSelected: 'Delete Selected',
-    layoutSwitch: 'Layout Switch',
-    switchLayout: 'Switch to Layout 1-4',
     viewControl: 'View Control',
-    toggleSidebar: 'Toggle Sidebar'
+    toggleSidebar: 'Toggle Sidebar',
+    zoomControl: 'Zoom Control',
+    zoomIn: 'Zoom In',
+    zoomOut: 'Zoom Out',
+    resetZoom: 'Reset Zoom',
+    showHelp: 'Show/Hide Help'
   },
   
   toast: {

@@ -73,15 +73,15 @@
               <h3>{{ $t('shortcuts.commonOps') }}</h3>
               <div class="help-item">
                 <span class="help-desc">{{ $t('shortcuts.undo') }}</span>
-                <kbd class="help-key">Ctrl + Z</kbd>
+                <kbd class="help-key">{{ ctrlKey }} + Z</kbd>
               </div>
               <div class="help-item">
                 <span class="help-desc">{{ $t('shortcuts.redo') }}</span>
-                <kbd class="help-key">Ctrl + Y</kbd>
+                <kbd class="help-key">{{ ctrlKey }} + Y</kbd>
               </div>
               <div class="help-item">
                 <span class="help-desc">{{ $t('shortcuts.export') }}</span>
-                <kbd class="help-key">Ctrl + S</kbd>
+                <kbd class="help-key">{{ ctrlKey }} + S</kbd>
               </div>
               <div class="help-item">
                 <span class="help-desc">{{ $t('shortcuts.deleteSelected') }}</span>
@@ -89,10 +89,18 @@
               </div>
             </div>
             <div class="help-section">
-              <h3>{{ $t('shortcuts.layoutSwitch') }}</h3>
+              <h3>{{ $t('shortcuts.zoomControl') }}</h3>
               <div class="help-item">
-                <span class="help-desc">{{ $t('shortcuts.switchLayout') }}</span>
-                <kbd class="help-key">1-4</kbd>
+                <span class="help-desc">{{ $t('shortcuts.zoomIn') }}</span>
+                <kbd class="help-key">{{ ctrlKey }} + =</kbd>
+              </div>
+              <div class="help-item">
+                <span class="help-desc">{{ $t('shortcuts.zoomOut') }}</span>
+                <kbd class="help-key">{{ ctrlKey }} + -</kbd>
+              </div>
+              <div class="help-item">
+                <span class="help-desc">{{ $t('shortcuts.resetZoom') }}</span>
+                <kbd class="help-key">{{ ctrlKey }} + 0</kbd>
               </div>
             </div>
             <div class="help-section">
@@ -100,6 +108,10 @@
               <div class="help-item">
                 <span class="help-desc">{{ $t('shortcuts.toggleSidebar') }}</span>
                 <kbd class="help-key">Space</kbd>
+              </div>
+              <div class="help-item">
+                <span class="help-desc">{{ $t('shortcuts.showHelp') }}</span>
+                <kbd class="help-key">?</kbd>
               </div>
             </div>
           </div>
@@ -110,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Sidebar from './components/Sidebar/Sidebar.vue'
 import CanvasArea from './components/Canvas/CanvasArea.vue'
 import Toast from './components/Common/Toast.vue'
@@ -128,30 +140,18 @@ const helpVisible = ref(false)
 const languageMenuVisible = ref(false)
 const languageButton = ref<HTMLElement>()
 
+/** 检测是否是 Mac 系统 */
+const isMac = computed(() => {
+  return navigator.platform.toUpperCase().includes('MAC')
+})
+
+/** 获取修饰键显示文本 */
+const ctrlKey = computed(() => isMac.value ? '⌘' : 'Ctrl')
+
 // 注册全局快捷键
 registerShortcut({
   ...SHORTCUTS.TOGGLE_SIDEBAR,
   handler: () => toggleSidebar()
-})
-
-registerShortcut({
-  ...SHORTCUTS.LAYOUT_1,
-  handler: () => store.setLayoutType('grid-2x1-h')
-})
-
-registerShortcut({
-  ...SHORTCUTS.LAYOUT_2,
-  handler: () => store.setLayoutType('grid-2x2')
-})
-
-registerShortcut({
-  ...SHORTCUTS.LAYOUT_3,
-  handler: () => store.setLayoutType('grid-3x1-h')
-})
-
-registerShortcut({
-  ...SHORTCUTS.LAYOUT_4,
-  handler: () => store.setLayoutType('grid-2x2')
 })
 
 // 语言切换

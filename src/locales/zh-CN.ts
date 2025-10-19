@@ -123,10 +123,13 @@ export default {
     redo: '重做',
     export: '导出图片',
     deleteSelected: '删除选中',
-    layoutSwitch: '布局切换',
-    switchLayout: '切换到布局1-4',
     viewControl: '视图控制',
-    toggleSidebar: '切换侧边栏'
+    toggleSidebar: '切换侧边栏',
+    zoomControl: '缩放控制',
+    zoomIn: '放大画布',
+    zoomOut: '缩小画布',
+    resetZoom: '重置缩放',
+    showHelp: '显示/隐藏帮助'
   },
   
   toast: {

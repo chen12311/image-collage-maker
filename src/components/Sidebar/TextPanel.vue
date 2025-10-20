@@ -32,6 +32,31 @@
         >
       </div>
       
+      <!-- 字体选择 -->
+      <div class="control-group">
+        <label class="control-label">{{ $t('sidebar.text.fontFamily') }}</label>
+        <Select
+          v-model="fontFamily"
+          :options="fontFamilies"
+          size="md"
+          :placeholder="checkingFonts ? '检测字体中...' : '选择字体'"
+          searchable
+        />
+      </div>
+      
+      <!-- 自定义字体输入 -->
+      <div class="control-group">
+        <label class="control-label">{{ $t('sidebar.text.customFont') }}</label>
+        <input
+          v-model="customFontInput"
+          type="text"
+          class="text-input custom-font-input"
+          :placeholder="$t('sidebar.text.customFontPlaceholder')"
+          @blur="applyCustomFont"
+          @keydown.enter="applyCustomFont"
+        >
+      </div>
+      
       <!-- 文字颜色 -->
       <div class="control-group">
         <label class="control-label">{{ $t('sidebar.text.color') }}</label>
@@ -104,23 +129,80 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import { createTextElement } from '@/core/models'
 import Icon from '@/components/Common/Icon.vue'
 import Button from '@/components/Common/Button.vue'
+import Select, { type SelectOption } from '@/components/Common/Select.vue'
 import { toast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
+import { isFontAvailable } from '@/utils/fontDetector'
 
 const store = useAppStore()
 const { t } = useI18n()
 const colorInput = ref<HTMLInputElement>()
+
+/** 预设字体列表（30+ 常用字体） */
+const PRESET_FONTS = [
+  // === 中文优先字体 ===
+  { label: '苹方（推荐）', value: 'PingFang SC', category: 'chinese' },
+  { label: '苹方 HK', value: 'PingFang HK', category: 'chinese' },
+  { label: '苹方 TC', value: 'PingFang TC', category: 'chinese' },
+  { label: '微软雅黑', value: 'Microsoft YaHei', category: 'chinese' },
+  { label: '微软正黑体', value: 'Microsoft JhengHei', category: 'chinese' },
+  { label: '黑体', value: 'SimHei', category: 'chinese' },
+  { label: '宋体', value: 'SimSun', category: 'chinese' },
+  { label: '新宋体', value: 'NSimSun', category: 'chinese' },
+  { label: '楷体', value: 'KaiTi', category: 'chinese' },
+  { label: '仿宋', value: 'FangSong', category: 'chinese' },
+  { label: '华文黑体', value: 'STHeiti', category: 'chinese' },
+  { label: '华文宋体', value: 'STSong', category: 'chinese' },
+  { label: '华文楷体', value: 'STKaiti', category: 'chinese' },
+  
+  // === 英文无衬线字体 ===
+  { label: 'Arial', value: 'Arial', category: 'sans-serif' },
+  { label: 'Helvetica', value: 'Helvetica', category: 'sans-serif' },
+  { label: 'Helvetica Neue', value: 'Helvetica Neue', category: 'sans-serif' },
+  { label: 'Verdana', value: 'Verdana', category: 'sans-serif' },
+  { label: 'Tahoma', value: 'Tahoma', category: 'sans-serif' },
+  { label: 'Trebuchet MS', value: 'Trebuchet MS', category: 'sans-serif' },
+  { label: 'Segoe UI', value: 'Segoe UI', category: 'sans-serif' },
+  
+  // === 英文衬线字体 ===
+  { label: 'Times New Roman', value: 'Times New Roman', category: 'serif' },
+  { label: 'Georgia', value: 'Georgia', category: 'serif' },
+  { label: 'Palatino', value: 'Palatino', category: 'serif' },
+  { label: 'Garamond', value: 'Garamond', category: 'serif' },
+  
+  // === 等宽字体 ===
+  { label: 'Courier New', value: 'Courier New', category: 'monospace' },
+  { label: 'Consolas', value: 'Consolas', category: 'monospace' },
+  { label: 'Monaco', value: 'Monaco', category: 'monospace' },
+  
+  // === 艺术/创意字体 ===
+  { label: 'Comic Sans MS', value: 'Comic Sans MS', category: 'cursive' },
+  { label: 'Impact', value: 'Impact', category: 'display' },
+  { label: 'Brush Script MT', value: 'Brush Script MT', category: 'cursive' }
+]
 
 /** 文字内容 */
 const textContent = ref('')
 
 /** 字体大小 */
 const fontSize = ref(32)
+
+/** 当前选中字体 */
+const fontFamily = ref('PingFang SC, sans-serif')
+
+/** 自定义字体输入 */
+const customFontInput = ref('')
+
+/** 字体可用性缓存 */
+const fontAvailability = ref<Map<string, boolean>>(new Map())
+
+/** 是否正在检测字体 */
+const checkingFonts = ref(false)
 
 /** 文字颜色 */
 const textColor = ref('#000000')
@@ -129,6 +211,60 @@ const textColor = ref('#000000')
 const selectedText = computed(() => {
   return store.texts.find(t => t.selected)
 })
+
+/** 
+ * 生成字体选择器选项
+ * 不可用字体标记为禁用并置灰
+ */
+const fontFamilies = computed<SelectOption[]>(() => {
+  return PRESET_FONTS.map(font => {
+    const isAvailable = fontAvailability.value.get(font.value) ?? true
+    const fallback = font.category === 'chinese' ? ', sans-serif' : 
+                     font.category === 'serif' ? ', serif' :
+                     font.category === 'monospace' ? ', monospace' :
+                     font.category === 'cursive' ? ', cursive' : ', sans-serif'
+    
+    return {
+      label: font.label,
+      value: `${font.value}${fallback}`,
+      disabled: !isAvailable  // 不可用字体禁用
+    }
+  })
+})
+
+/** 
+ * 检测所有字体可用性
+ * 在组件挂载时执行
+ */
+async function checkAllFonts() {
+  checkingFonts.value = true
+  
+  // 使用 setTimeout 避免阻塞 UI
+  await new Promise(resolve => setTimeout(resolve, 0))
+  
+  const fonts = PRESET_FONTS.map(f => f.value)
+  const availability = new Map<string, boolean>()
+  
+  for (const font of fonts) {
+    availability.set(font, isFontAvailable(font))
+  }
+  
+  fontAvailability.value = availability
+  checkingFonts.value = false
+}
+
+/** 应用自定义字体 */
+function applyCustomFont() {
+  const customFont = customFontInput.value.trim()
+  if (!customFont) return
+  
+  // 构造 font-family 值（添加降级字体）
+  const fontValue = `${customFont}, sans-serif`
+  fontFamily.value = fontValue
+  
+  // 清空输入
+  customFontInput.value = ''
+}
 
 /** 监听选中文字的变化，同步字体大小到侧边栏 */
 watch(
@@ -147,6 +283,28 @@ watch(fontSize, (newSize) => {
       style: {
         ...selectedText.value.style,
         fontSize: newSize
+      }
+    })
+  }
+})
+
+/** 监听选中文字的字体变化，同步到侧边栏 */
+watch(
+  () => selectedText.value?.style.fontFamily,
+  (newFontFamily) => {
+    if (newFontFamily !== undefined && newFontFamily !== fontFamily.value) {
+      fontFamily.value = newFontFamily
+    }
+  }
+)
+
+/** 监听侧边栏字体变化，同步到选中的文字 */
+watch(fontFamily, (newFontFamily) => {
+  if (selectedText.value && selectedText.value.style.fontFamily !== newFontFamily) {
+    store.updateText(selectedText.value.id, {
+      style: {
+        ...selectedText.value.style,
+        fontFamily: newFontFamily
       }
     })
   }
@@ -177,7 +335,8 @@ function addText() {
   
   const text = createTextElement(textContent.value, x, y, {
     fontSize: fontSize.value,
-    color: textColor.value
+    color: textColor.value,
+    fontFamily: fontFamily.value
   })
   
   store.addText(text)
@@ -186,6 +345,11 @@ function addText() {
   // 清空输入
   textContent.value = ''
 }
+
+/** 组件挂载时检测字体 */
+onMounted(() => {
+  checkAllFonts()
+})
 
 /** 删除文字 */
 function removeText(id: string) {
@@ -276,6 +440,25 @@ function clearAllTexts() {
 }
 
 .text-input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-50);
+}
+
+/* 自定义字体输入框 */
+.custom-font-input {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-800);
+  background: var(--color-neutral-0);
+  border: 1px solid var(--border-color-base);
+  border-radius: var(--radius-md);
+  transition: var(--transition-base);
+}
+
+.custom-font-input:focus {
   outline: none;
   border-color: var(--color-primary-500);
   box-shadow: 0 0 0 3px var(--color-primary-50);

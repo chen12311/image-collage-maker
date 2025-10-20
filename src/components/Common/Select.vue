@@ -23,20 +23,36 @@
         class="select-dropdown"
         role="listbox"
       >
+        <!-- 搜索框 -->
+        <div v-if="searchable" class="select-search">
+          <input
+            ref="searchInputRef"
+            v-model="searchQuery"
+            type="text"
+            class="select-search-input"
+            placeholder="搜索..."
+            @click.stop
+          >
+          <Icon name="search" size="sm" class="select-search-icon" />
+        </div>
+        
+        <!-- 选项列表 -->
         <div
-          v-for="(option, index) in options"
+          v-for="(option, index) in filteredOptions"
           :key="option.value"
           :class="[
             'select-option',
             { 
               'select-option-selected': option.value === modelValue,
-              'select-option-highlighted': index === highlightedIndex
+              'select-option-highlighted': index === highlightedIndex,
+              'select-option-disabled': option.disabled
             }
           ]"
           role="option"
           :aria-selected="option.value === modelValue"
+          :aria-disabled="option.disabled"
           @click="selectOption(option)"
-          @mouseenter="highlightedIndex = index"
+          @mouseenter="!option.disabled && (highlightedIndex = index)"
         >
           <span class="select-option-label">{{ option.label }}</span>
           <Icon 
@@ -45,6 +61,11 @@
             size="sm" 
             class="select-option-icon"
           />
+        </div>
+        
+        <!-- 无结果提示 -->
+        <div v-if="searchable && filteredOptions.length === 0" class="select-no-results">
+          无匹配结果
         </div>
       </div>
     </Transition>
@@ -59,6 +80,7 @@ import Icon from './Icon.vue'
 export interface SelectOption {
   label: string
   value: string | number
+  disabled?: boolean  // 是否禁用
 }
 
 /** Select 属性 */
@@ -73,12 +95,15 @@ interface Props {
   disabled?: boolean
   /** 尺寸 */
   size?: 'sm' | 'md' | 'lg'
+  /** 是否可搜索 */
+  searchable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '请选择',
   disabled: false,
-  size: 'md'
+  size: 'md',
+  searchable: false
 })
 
 const emit = defineEmits<{
@@ -89,6 +114,8 @@ const emit = defineEmits<{
 const selectRef = ref<HTMLElement>()
 const isOpen = ref(false)
 const highlightedIndex = ref(-1)
+const searchQuery = ref('')
+const searchInputRef = ref<HTMLInputElement>()
 
 /** 尺寸类名 */
 const sizeClass = computed(() => `select-${props.size}`)
@@ -99,6 +126,18 @@ const selectedLabel = computed(() => {
   return selected?.label || ''
 })
 
+/** 过滤后的选项列表 */
+const filteredOptions = computed(() => {
+  if (!props.searchable || !searchQuery.value.trim()) {
+    return props.options
+  }
+  
+  const query = searchQuery.value.toLowerCase()
+  return props.options.filter(opt => 
+    opt.label.toLowerCase().includes(query)
+  )
+})
+
 /** 切换下拉菜单 */
 function toggleDropdown() {
   if (props.disabled) return
@@ -106,17 +145,29 @@ function toggleDropdown() {
   
   if (isOpen.value) {
     // 打开时，高亮当前选中项
-    const currentIndex = props.options.findIndex(opt => opt.value === props.modelValue)
+    const currentIndex = filteredOptions.value.findIndex(opt => opt.value === props.modelValue)
     highlightedIndex.value = currentIndex >= 0 ? currentIndex : 0
+    
+    // 如果可搜索，聚焦搜索框
+    if (props.searchable) {
+      searchQuery.value = ''
+      setTimeout(() => {
+        searchInputRef.value?.focus()
+      }, 50)
+    }
   }
 }
 
 /** 选择选项 */
 function selectOption(option: SelectOption) {
+  // 如果选项被禁用，不执行选择
+  if (option.disabled) return
+  
   emit('update:modelValue', option.value)
   emit('change', option.value)
   isOpen.value = false
   highlightedIndex.value = -1
+  searchQuery.value = ''
 }
 
 /** 触发器键盘事件 */
@@ -130,7 +181,7 @@ function handleTriggerKeydown(e: KeyboardEvent) {
       e.preventDefault()
       if (!isOpen.value) {
         isOpen.value = true
-        const currentIndex = props.options.findIndex(opt => opt.value === props.modelValue)
+        const currentIndex = filteredOptions.value.findIndex(opt => opt.value === props.modelValue)
         highlightedIndex.value = currentIndex >= 0 ? currentIndex : 0
       }
       break
@@ -138,8 +189,8 @@ function handleTriggerKeydown(e: KeyboardEvent) {
       e.preventDefault()
       if (!isOpen.value) {
         isOpen.value = true
-        const currentIndex = props.options.findIndex(opt => opt.value === props.modelValue)
-        highlightedIndex.value = currentIndex >= 0 ? currentIndex : props.options.length - 1
+        const currentIndex = filteredOptions.value.findIndex(opt => opt.value === props.modelValue)
+        highlightedIndex.value = currentIndex >= 0 ? currentIndex : filteredOptions.value.length - 1
       }
       break
   }
@@ -149,25 +200,60 @@ function handleTriggerKeydown(e: KeyboardEvent) {
 function handleDropdownKeydown(e: KeyboardEvent) {
   if (!isOpen.value) return
   
+  // 如果是在搜索框中输入，不处理上下键
+  if (props.searchable && document.activeElement === searchInputRef.value) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      isOpen.value = false
+      highlightedIndex.value = -1
+      searchQuery.value = ''
+      return
+    }
+    if (e.key === 'Enter' && highlightedIndex.value >= 0) {
+      e.preventDefault()
+      selectOption(filteredOptions.value[highlightedIndex.value])
+      return
+    }
+    return
+  }
+  
   switch (e.key) {
     case 'ArrowDown':
       e.preventDefault()
-      highlightedIndex.value = Math.min(highlightedIndex.value + 1, props.options.length - 1)
+      // 跳过禁用的选项
+      let nextIndex = highlightedIndex.value + 1
+      while (nextIndex < filteredOptions.value.length && filteredOptions.value[nextIndex].disabled) {
+        nextIndex++
+      }
+      if (nextIndex < filteredOptions.value.length) {
+        highlightedIndex.value = nextIndex
+      }
       break
     case 'ArrowUp':
       e.preventDefault()
-      highlightedIndex.value = Math.max(highlightedIndex.value - 1, 0)
+      // 跳过禁用的选项
+      let prevIndex = highlightedIndex.value - 1
+      while (prevIndex >= 0 && filteredOptions.value[prevIndex].disabled) {
+        prevIndex--
+      }
+      if (prevIndex >= 0) {
+        highlightedIndex.value = prevIndex
+      }
       break
     case 'Enter':
       e.preventDefault()
       if (highlightedIndex.value >= 0) {
-        selectOption(props.options[highlightedIndex.value])
+        selectOption(filteredOptions.value[highlightedIndex.value])
       }
       break
     case 'Escape':
       e.preventDefault()
       isOpen.value = false
       highlightedIndex.value = -1
+      searchQuery.value = ''
       break
   }
 }
@@ -298,7 +384,7 @@ onUnmounted(() => {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  max-height: 280px;
+  max-height: 320px;
   overflow-y: auto;
   background: var(--color-neutral-0);
   border: 1px solid var(--border-color-light);
@@ -306,6 +392,50 @@ onUnmounted(() => {
   box-shadow: var(--shadow-lg);
   z-index: var(--z-index-dropdown);
   padding: var(--spacing-1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 搜索框容器 */
+.select-search {
+  position: relative;
+  padding: var(--spacing-2);
+  padding-bottom: var(--spacing-1);
+  border-bottom: 1px solid var(--border-color-light);
+  margin-bottom: var(--spacing-1);
+}
+
+/* 搜索输入框 */
+.select-search-input {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-7) var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-800);
+  background: var(--color-neutral-50);
+  border: 1px solid var(--border-color-base);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.select-search-input:focus {
+  background: var(--color-neutral-0);
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px var(--color-primary-50);
+}
+
+.select-search-input::placeholder {
+  color: var(--color-neutral-400);
+}
+
+/* 搜索图标 */
+.select-search-icon {
+  position: absolute;
+  right: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-neutral-400);
+  pointer-events: none;
 }
 
 /* 自定义滚动条 */
@@ -368,6 +498,30 @@ onUnmounted(() => {
 
 .select-option-icon {
   flex-shrink: 0;
+}
+
+/* 禁用选项 */
+.select-option-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--color-neutral-50);
+}
+
+.select-option-disabled:hover {
+  background: var(--color-neutral-50);
+  color: var(--color-neutral-700);
+}
+
+.select-option-disabled .select-option-label {
+  text-decoration: line-through;
+}
+
+/* 无结果提示 */
+.select-no-results {
+  padding: var(--spacing-4) var(--spacing-3);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-500);
 }
 
 /* 下拉动画 */

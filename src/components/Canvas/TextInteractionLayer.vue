@@ -66,6 +66,7 @@ const hoveredTextId = ref<string | null>(null)
 const resizingTextId = ref<string | null>(null)
 const resizeStartPos = ref({ x: 0, y: 0 })
 const resizeStartFontSize = ref(0)
+const resizeStartCenter = ref({ x: 0, y: 0 }) // 文字中心点位置
 
 /** 临时canvas用于文字尺寸测量 */
 let measureCanvas: HTMLCanvasElement | null = null
@@ -244,16 +245,43 @@ function onLayerMouseMove(event: MouseEvent) {
       const text = store.texts.find(t => t.id === resizingTextId.value)
       if (!text) return
       
-      // 计算鼠标移动距离（对角线距离）
-      const deltaX = pendingMouseEvent.clientX - resizeStartPos.value.x
-      const deltaY = pendingMouseEvent.clientY - resizeStartPos.value.y
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+      // 获取画布容器的边界（用于将屏幕坐标转换为画布坐标）
+      const layerRect = layerRef.value?.getBoundingClientRect()
+      if (!layerRect) return
       
-      // 根据方向确定增减（右下方向为正）
-      const direction = (deltaX + deltaY) > 0 ? 1 : -1
+      // 计算当前鼠标在画布坐标系中的位置
+      const currentMouseX = (pendingMouseEvent.clientX - layerRect.left) / store.canvasScale
+      const currentMouseY = (pendingMouseEvent.clientY - layerRect.top) / store.canvasScale
       
-      // 计算新的字体大小（每移动1px约等于0.2px字体变化）
-      const fontSizeChange = distance * 0.2 * direction
+      // 计算起始鼠标在画布坐标系中的位置
+      const startMouseX = (resizeStartPos.value.x - layerRect.left) / store.canvasScale
+      const startMouseY = (resizeStartPos.value.y - layerRect.top) / store.canvasScale
+      
+      // 计算从中心到起始点的向量
+      const startVectorX = startMouseX - resizeStartCenter.value.x
+      const startVectorY = startMouseY - resizeStartCenter.value.y
+      const startDistance = Math.sqrt(startVectorX * startVectorX + startVectorY * startVectorY)
+      
+      // 避免除以0
+      if (startDistance < 1) return
+      
+      // 计算从中心到当前点的向量
+      const currentVectorX = currentMouseX - resizeStartCenter.value.x
+      const currentVectorY = currentMouseY - resizeStartCenter.value.y
+      
+      // 计算当前向量在起始方向上的投影长度
+      // 投影 = (当前向量 · 起始向量) / |起始向量|
+      const dotProduct = startVectorX * currentVectorX + startVectorY * currentVectorY
+      const projectionLength = dotProduct / startDistance
+      
+      // 投影长度的变化就是实际的"沿着初始方向的距离变化"
+      // 如果投影变长（>startDistance）→ 向外拉 → 放大
+      // 如果投影变短（<startDistance）→ 向内拉 → 缩小
+      // 如果投影为负（<0）→ 反向 → 缩小
+      const distanceChange = projectionLength - startDistance
+      
+      // 计算新的字体大小（每变化1px距离约等于0.2px字体变化）
+      const fontSizeChange = distanceChange * 0.2
       let newFontSize = resizeStartFontSize.value + fontSizeChange
       
       // 限制在 12-120px 范围内
@@ -354,12 +382,32 @@ function onCornerMouseDown(event: MouseEvent, textId: string) {
   const text = store.texts.find(t => t.id === textId)
   if (!text) return
   
+  // 计算文字的中心点位置（在画布坐标系中）
+  const size = getTextSize(text)
+  let centerX = text.position.x
+  let centerY = text.position.y
+  
+  // 根据textAlign调整中心点X
+  if (text.style.textAlign === 'left') {
+    centerX = text.position.x + size.width / 2
+  } else if (text.style.textAlign === 'right') {
+    centerX = text.position.x - size.width / 2
+  }
+  
+  // 根据textBaseline调整中心点Y
+  if (text.style.textBaseline === 'top') {
+    centerY = text.position.y + size.height / 2
+  } else if (text.style.textBaseline === 'bottom') {
+    centerY = text.position.y - size.height / 2
+  }
+  
   resizingTextId.value = textId
   resizeStartPos.value = {
     x: event.clientX,
     y: event.clientY
   }
   resizeStartFontSize.value = text.style.fontSize
+  resizeStartCenter.value = { x: centerX, y: centerY }
   
   // 选中该文字
   store.selectText(textId)

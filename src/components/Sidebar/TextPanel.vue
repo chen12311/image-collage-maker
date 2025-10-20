@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import { createTextElement } from '@/core/models'
 import Icon from '@/components/Common/Icon.vue'
@@ -124,6 +124,33 @@ const fontSize = ref(32)
 
 /** 文字颜色 */
 const textColor = ref('#000000')
+
+/** 当前选中的文字 */
+const selectedText = computed(() => {
+  return store.texts.find(t => t.selected)
+})
+
+/** 监听选中文字的变化，同步字体大小到侧边栏 */
+watch(
+  () => selectedText.value?.style.fontSize,
+  (newFontSize) => {
+    if (newFontSize !== undefined && newFontSize !== fontSize.value) {
+      fontSize.value = newFontSize
+    }
+  }
+)
+
+/** 监听侧边栏字体大小的变化，同步到选中的文字 */
+watch(fontSize, (newSize) => {
+  if (selectedText.value && selectedText.value.style.fontSize !== newSize) {
+    store.updateText(selectedText.value.id, {
+      style: {
+        ...selectedText.value.style,
+        fontSize: newSize
+      }
+    })
+  }
+})
 
 /** 预设颜色 */
 const presetColors = [

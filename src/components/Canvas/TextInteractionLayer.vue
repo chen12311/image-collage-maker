@@ -16,6 +16,7 @@
       :class="['text-zone', { 
         'text-zone-selected': text.selected,
         'text-zone-dragging': draggingTextId === text.id,
+        'text-zone-resizing': resizingTextId === text.id,
         'text-zone-hover': hoveredTextId === text.id
       }]"
       :style="getTextZoneStyle(text)"
@@ -25,10 +26,22 @@
       <!-- 文字边界框（视觉反馈） -->
       <div class="text-boundary">
         <div class="text-boundary-corners">
-          <span class="corner corner-tl"></span>
-          <span class="corner corner-tr"></span>
-          <span class="corner corner-bl"></span>
-          <span class="corner corner-br"></span>
+          <span 
+            class="corner corner-tl" 
+            @mousedown="onCornerMouseDown($event, text.id)"
+          ></span>
+          <span 
+            class="corner corner-tr" 
+            @mousedown="onCornerMouseDown($event, text.id)"
+          ></span>
+          <span 
+            class="corner corner-bl" 
+            @mousedown="onCornerMouseDown($event, text.id)"
+          ></span>
+          <span 
+            class="corner corner-br" 
+            @mousedown="onCornerMouseDown($event, text.id)"
+          ></span>
         </div>
       </div>
     </div>
@@ -48,6 +61,11 @@ const layerRef = ref<HTMLDivElement>()
 const draggingTextId = ref<string | null>(null)
 const dragOffset = ref({ x: 0, y: 0 })
 const hoveredTextId = ref<string | null>(null)
+
+/** 调整大小状态 */
+const resizingTextId = ref<string | null>(null)
+const resizeStartPos = ref({ x: 0, y: 0 })
+const resizeStartFontSize = ref(0)
 
 /** 临时canvas用于文字尺寸测量 */
 let measureCanvas: HTMLCanvasElement | null = null
@@ -158,6 +176,12 @@ function getTextZoneStyle(text: TextElement) {
 
 /** Layer上的鼠标按下 - 判断点击的是哪个文字 */
 function onLayerMouseDown(event: MouseEvent) {
+  // 检查是否点击的是角标 - 如果是，跳过文字拖拽逻辑
+  const target = event.target as HTMLElement
+  if (target.classList.contains('corner')) {
+    return // 让角标自己的 mousedown 事件处理
+  }
+  
   // 获取画布容器的边界
   const layerRect = layerRef.value?.getBoundingClientRect()
   if (!layerRect) return
@@ -192,6 +216,56 @@ function onLayerMouseDown(event: MouseEvent) {
 
 /** Layer上的鼠标移动 - 使用RAF节流 */
 function onLayerMouseMove(event: MouseEvent) {
+  // 处理调整大小
+  if (resizingTextId.value) {
+    // 保存最新的鼠标事件
+    pendingMouseEvent = event
+    
+    // 如果已经有pending的RAF，直接返回
+    if (rafId !== null) return
+    
+    // 使用RAF节流
+    rafId = requestAnimationFrame(() => {
+      rafId = null
+      
+      if (!pendingMouseEvent || !resizingTextId.value) return
+      
+      const text = store.texts.find(t => t.id === resizingTextId.value)
+      if (!text) return
+      
+      // 计算鼠标移动距离（对角线距离）
+      const deltaX = pendingMouseEvent.clientX - resizeStartPos.value.x
+      const deltaY = pendingMouseEvent.clientY - resizeStartPos.value.y
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+      
+      // 根据方向确定增减（右下方向为正）
+      const direction = (deltaX + deltaY) > 0 ? 1 : -1
+      
+      // 计算新的字体大小（每移动1px约等于0.2px字体变化）
+      const fontSizeChange = distance * 0.2 * direction
+      let newFontSize = resizeStartFontSize.value + fontSizeChange
+      
+      // 限制在 12-120px 范围内
+      newFontSize = Math.max(12, Math.min(120, newFontSize))
+      newFontSize = Math.round(newFontSize) // 四舍五入到整数
+      
+      // 更新字体大小
+      store.updateText(resizingTextId.value, {
+        style: {
+          ...text.style,
+          fontSize: newFontSize
+        }
+      })
+      
+      // 清除缓存，因为字体大小改变了
+      textSizeCache.clear()
+      
+      pendingMouseEvent = null
+    })
+    return
+  }
+  
+  // 处理拖拽
   if (!draggingTextId.value) return
   
   // 保存最新的鼠标事件
@@ -261,10 +335,37 @@ function onLayerMouseMove(event: MouseEvent) {
   })
 }
 
-/** 鼠标抬起结束拖拽 */
+/** 角标鼠标按下 - 开始调整大小 */
+function onCornerMouseDown(event: MouseEvent, textId: string) {
+  event.preventDefault()
+  event.stopPropagation()
+  
+  const text = store.texts.find(t => t.id === textId)
+  if (!text) return
+  
+  resizingTextId.value = textId
+  resizeStartPos.value = {
+    x: event.clientX,
+    y: event.clientY
+  }
+  resizeStartFontSize.value = text.style.fontSize
+  
+  // 选中该文字
+  store.selectText(textId)
+  
+  // 改变鼠标样式
+  document.body.style.cursor = 'nwse-resize'
+}
+
+/** 鼠标抬起结束拖拽或调整大小 */
 function onMouseUp() {
   if (draggingTextId.value) {
     draggingTextId.value = null
+    document.body.style.cursor = ''
+  }
+  
+  if (resizingTextId.value) {
+    resizingTextId.value = null
     document.body.style.cursor = ''
   }
   
@@ -287,8 +388,9 @@ function onMouseUp() {
   z-index: 10;
 }
 
-/* 拖拽时layer接收所有事件，避免失去焦点 */
-.text-interaction-layer:has(.text-zone-dragging) {
+/* 拖拽或调整大小时layer接收所有事件，避免失去焦点 */
+.text-interaction-layer:has(.text-zone-dragging),
+.text-interaction-layer:has(.text-zone-resizing) {
   pointer-events: auto;
 }
 
@@ -337,10 +439,11 @@ function onMouseUp() {
   box-shadow: 0 4px 12px rgba(22, 119, 255, 0.3);
 }
 
-/* 边界框角标 */
+/* 边界框角标容器 */
 .text-boundary-corners {
   position: absolute;
   inset: -4px;
+  pointer-events: none;  /* 容器本身不接收事件，让角标独立控制 */
 }
 
 .corner {
@@ -351,16 +454,38 @@ function onMouseUp() {
   border: 1px solid var(--color-neutral-0);
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
+  cursor: nwse-resize;
+  transition: all var(--duration-fast) var(--ease-in-out);
+  opacity: 0;
+  pointer-events: auto;
 }
 
-.corner-tl { top: 0; left: 0; }
-.corner-tr { top: 0; right: 0; }
-.corner-bl { bottom: 0; left: 0; }
-.corner-br { bottom: 0; right: 0; }
+/* 扩大角标的可点击热区（视觉大小不变） */
+.corner::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  cursor: inherit;
+}
+
+.corner:hover {
+  transform: scale(1.3);
+  background: var(--color-primary-600);
+  box-shadow: var(--shadow-md);
+}
+
+.corner-tl { top: 0; left: 0; cursor: nwse-resize; }
+.corner-tr { top: 0; right: 0; cursor: nesw-resize; }
+.corner-bl { bottom: 0; left: 0; cursor: nesw-resize; }
+.corner-br { bottom: 0; right: 0; cursor: nwse-resize; }
 
 .text-zone-hover .corner,
 .text-zone-selected .corner,
-.text-zone-dragging .corner {
+.text-zone-dragging .corner,
+.text-zone-resizing .corner {
   opacity: 1;
 }
 
@@ -375,6 +500,23 @@ function onMouseUp() {
 
 .text-zone-dragging {
   z-index: 13;
+}
+
+.text-zone-resizing {
+  z-index: 14;
+  transition: none !important;
+}
+
+.text-zone-resizing .text-boundary {
+  border-color: var(--color-primary-600);
+  background: rgba(22, 119, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.4);
+}
+
+.text-zone-resizing .corner {
+  transform: scale(1.5);
+  background: var(--color-primary-700);
+  box-shadow: 0 0 0 2px var(--color-primary-200);
 }
 </style>
 

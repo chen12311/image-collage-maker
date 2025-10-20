@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="text-interaction-layer" 
+    class="text-interaction-layer"
     ref="layerRef" 
     :style="layerStyle"
     @mousedown.capture="onLayerMouseDown"
@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import { measureTextSize } from '@/core/models/TextElement'
 import type { TextElement } from '@/core/models'
@@ -136,6 +136,11 @@ const visibleTexts = computed(() => {
   return store.texts.filter(t => t.visible)
 })
 
+/** 是否有文字处于选中状态 */
+const hasSelectedText = computed(() => {
+  return visibleTexts.value.some(t => t.selected)
+})
+
 /** 交互层样式（与画布尺寸和缩放精确匹配） */
 const layerStyle = computed(() => ({
   width: `${store.canvasWidth}px`,
@@ -194,7 +199,13 @@ function onLayerMouseDown(event: MouseEvent) {
   const texts = [...visibleTexts.value].reverse()
   const clickedText = texts.find(text => isPointInText(canvasX, canvasY, text))
   
-  if (!clickedText) return
+  // 如果没有点击任何文字，取消所有文字的选中状态并清除拖拽/调整大小状态
+  if (!clickedText) {
+    store.deselectAllTexts()
+    draggingTextId.value = null
+    resizingTextId.value = null
+    return
+  }
   
   event.preventDefault()
   event.stopPropagation()
@@ -376,6 +387,44 @@ function onMouseUp() {
   }
   pendingMouseEvent = null
 }
+
+/** 全局点击处理 - 点击文字外部区域时取消选中 */
+function handleGlobalMouseDown(event: MouseEvent) {
+  // 如果没有选中的文字，不需要处理
+  if (!hasSelectedText.value) return
+  
+  // 如果正在拖拽或调整大小，不处理
+  if (draggingTextId.value || resizingTextId.value) return
+  
+  // 检查点击目标是否在文字热区内
+  const target = event.target
+  
+  // 确保 target 是 Element 类型，才能使用 closest 方法
+  if (!(target instanceof Element)) {
+    // 如果不是 Element，说明点击在文字外部
+    store.deselectAllTexts()
+    return
+  }
+  
+  const clickedInTextZone = target.closest('.text-zone')
+  const clickedInCorner = target.closest('.corner')
+  
+  // 如果点击在文字区域或角标上，不处理
+  if (clickedInTextZone || clickedInCorner) return
+  
+  // 点击在文字外部，取消所有选中状态
+  store.deselectAllTexts()
+}
+
+/** 组件挂载时添加全局事件监听 */
+onMounted(() => {
+  document.addEventListener('mousedown', handleGlobalMouseDown)
+})
+
+/** 组件卸载时移除全局事件监听 */
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleGlobalMouseDown)
+})
 </script>
 
 <style scoped>

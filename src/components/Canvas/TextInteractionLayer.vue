@@ -3,7 +3,8 @@
     class="text-interaction-layer" 
     ref="layerRef" 
     :style="layerStyle"
-    @mousemove="onMouseMove"
+    @mousedown.capture="onLayerMouseDown"
+    @mousemove="onLayerMouseMove"
     @mouseup="onMouseUp"
     @mouseleave="onMouseUp"
   >
@@ -11,13 +12,13 @@
     <div
       v-for="text in visibleTexts"
       :key="text.id"
+      :data-text-id="text.id"
       :class="['text-zone', { 
         'text-zone-selected': text.selected,
         'text-zone-dragging': draggingTextId === text.id,
         'text-zone-hover': hoveredTextId === text.id
       }]"
       :style="getTextZoneStyle(text)"
-      @mousedown="onMouseDown(text, $event)"
       @mouseenter="hoveredTextId = text.id"
       @mouseleave="hoveredTextId = null"
     >
@@ -52,6 +53,13 @@ const hoveredTextId = ref<string | null>(null)
 let measureCanvas: HTMLCanvasElement | null = null
 let measureCtx: CanvasRenderingContext2D | null = null
 
+/** RAF节流标识 */
+let rafId: number | null = null
+let pendingMouseEvent: MouseEvent | null = null
+
+/** 文字尺寸缓存 - 避免重复测量 */
+const textSizeCache = new Map<string, { width: number; height: number }>()
+
 /** 获取测量用的canvas上下文 */
 function getMeasureContext(): CanvasRenderingContext2D {
   if (!measureCanvas) {
@@ -59,6 +67,50 @@ function getMeasureContext(): CanvasRenderingContext2D {
     measureCtx = measureCanvas.getContext('2d')!
   }
   return measureCtx!
+}
+
+/** 获取或缓存文字尺寸 */
+function getTextSize(text: TextElement): { width: number; height: number } {
+  const cacheKey = `${text.id}-${text.content}-${text.style.fontSize}-${text.style.fontFamily}-${text.style.fontWeight}`
+  
+  if (textSizeCache.has(cacheKey)) {
+    return textSizeCache.get(cacheKey)!
+  }
+  
+  const ctx = getMeasureContext()
+  const size = measureTextSize(text, ctx)
+  textSizeCache.set(cacheKey, size)
+  
+  return size
+}
+
+/** 检查点是否在文字框内 */
+function isPointInText(x: number, y: number, text: TextElement): boolean {
+  const size = getTextSize(text)
+  const padding = 8
+  
+  // 根据textAlign调整x位置
+  let adjustedX = text.position.x
+  if (text.style.textAlign === 'center') {
+    adjustedX = text.position.x - size.width / 2
+  } else if (text.style.textAlign === 'right') {
+    adjustedX = text.position.x - size.width
+  }
+  
+  // 根据textBaseline调整y位置
+  let adjustedY = text.position.y
+  if (text.style.textBaseline === 'middle') {
+    adjustedY = text.position.y - size.height / 2
+  } else if (text.style.textBaseline === 'bottom') {
+    adjustedY = text.position.y - size.height
+  }
+  
+  const left = adjustedX - padding
+  const top = adjustedY - padding
+  const right = left + size.width + padding * 2
+  const bottom = top + size.height + padding * 2
+  
+  return x >= left && x <= right && y >= top && y <= bottom
 }
 
 /** 可见的文字列表 */
@@ -75,8 +127,7 @@ const layerStyle = computed(() => ({
 
 /** 获取文字热区样式 */
 function getTextZoneStyle(text: TextElement) {
-  const ctx = getMeasureContext()
-  const size = measureTextSize(text, ctx)
+  const size = getTextSize(text)
   
   // 根据textAlign调整x位置
   let adjustedX = text.position.x
@@ -105,41 +156,8 @@ function getTextZoneStyle(text: TextElement) {
   }
 }
 
-/** 鼠标按下开始拖拽 */
-function onMouseDown(text: TextElement, event: MouseEvent) {
-  event.preventDefault()
-  event.stopPropagation()
-  
-  draggingTextId.value = text.id
-  
-  // 获取画布容器的边界，用于坐标转换
-  const layerRect = layerRef.value?.getBoundingClientRect()
-  if (!layerRect) return
-  
-  // 计算鼠标在画布坐标系中的位置
-  const canvasX = event.clientX - layerRect.left
-  const canvasY = event.clientY - layerRect.top
-  
-  // 记录鼠标相对文字位置的偏移
-  dragOffset.value = {
-    x: canvasX - text.position.x,
-    y: canvasY - text.position.y
-  }
-  
-  // 选中该文字
-  store.selectText(text.id)
-  
-  // 改变鼠标样式
-  document.body.style.cursor = 'grabbing'
-}
-
-/** 鼠标移动拖拽中 */
-function onMouseMove(event: MouseEvent) {
-  if (!draggingTextId.value) return
-  
-  const text = store.texts.find(t => t.id === draggingTextId.value)
-  if (!text) return
-  
+/** Layer上的鼠标按下 - 判断点击的是哪个文字 */
+function onLayerMouseDown(event: MouseEvent) {
   // 获取画布容器的边界
   const layerRect = layerRef.value?.getBoundingClientRect()
   if (!layerRect) return
@@ -148,45 +166,98 @@ function onMouseMove(event: MouseEvent) {
   const canvasX = event.clientX - layerRect.left
   const canvasY = event.clientY - layerRect.top
   
-  // 计算新位置
-  let newX = canvasX - dragOffset.value.x
-  let newY = canvasY - dragOffset.value.y
+  // 从上到下（z-index高的优先）查找被点击的文字
+  const texts = [...visibleTexts.value].reverse()
+  const clickedText = texts.find(text => isPointInText(canvasX, canvasY, text))
   
-  // 获取文字尺寸用于边界检测
-  const ctx = getMeasureContext()
-  const size = measureTextSize(text, ctx)
+  if (!clickedText) return
   
-  // 边界检测（根据textAlign和textBaseline调整）
-  let minX = 0
-  let maxX = store.canvasWidth
-  let minY = 0
-  let maxY = store.canvasHeight
+  event.preventDefault()
+  event.stopPropagation()
   
-  if (text.style.textAlign === 'left') {
-    maxX = store.canvasWidth - size.width
-  } else if (text.style.textAlign === 'center') {
-    minX = size.width / 2
-    maxX = store.canvasWidth - size.width / 2
-  } else if (text.style.textAlign === 'right') {
-    minX = size.width
+  draggingTextId.value = clickedText.id
+  
+  // 记录鼠标相对文字位置的偏移
+  dragOffset.value = {
+    x: canvasX - clickedText.position.x,
+    y: canvasY - clickedText.position.y
   }
   
-  if (text.style.textBaseline === 'top') {
-    maxY = store.canvasHeight - size.height
-  } else if (text.style.textBaseline === 'middle') {
-    minY = size.height / 2
-    maxY = store.canvasHeight - size.height / 2
-  } else if (text.style.textBaseline === 'bottom') {
-    minY = size.height
-  }
+  // 选中该文字
+  store.selectText(clickedText.id)
   
-  // 限制在画布范围内
-  newX = Math.max(minX, Math.min(maxX, newX))
-  newY = Math.max(minY, Math.min(maxY, newY))
+  // 改变鼠标样式
+  document.body.style.cursor = 'grabbing'
+}
+
+/** Layer上的鼠标移动 - 使用RAF节流 */
+function onLayerMouseMove(event: MouseEvent) {
+  if (!draggingTextId.value) return
   
-  // 更新位置
-  store.updateText(draggingTextId.value, {
-    position: { x: newX, y: newY }
+  // 保存最新的鼠标事件
+  pendingMouseEvent = event
+  
+  // 如果已经有pending的RAF，直接返回
+  if (rafId !== null) return
+  
+  // 使用RAF节流
+  rafId = requestAnimationFrame(() => {
+    rafId = null
+    
+    if (!pendingMouseEvent || !draggingTextId.value) return
+    
+    const text = store.texts.find(t => t.id === draggingTextId.value)
+    if (!text) return
+    
+    // 获取画布容器的边界
+    const layerRect = layerRef.value?.getBoundingClientRect()
+    if (!layerRect) return
+    
+    // 计算鼠标在画布坐标系中的位置
+    const canvasX = pendingMouseEvent.clientX - layerRect.left
+    const canvasY = pendingMouseEvent.clientY - layerRect.top
+    
+    // 计算新位置
+    let newX = canvasX - dragOffset.value.x
+    let newY = canvasY - dragOffset.value.y
+    
+    // 获取文字尺寸用于边界检测（使用缓存）
+    const size = getTextSize(text)
+    
+    // 边界检测（根据textAlign和textBaseline调整）
+    let minX = 0
+    let maxX = store.canvasWidth
+    let minY = 0
+    let maxY = store.canvasHeight
+    
+    if (text.style.textAlign === 'left') {
+      maxX = store.canvasWidth - size.width
+    } else if (text.style.textAlign === 'center') {
+      minX = size.width / 2
+      maxX = store.canvasWidth - size.width / 2
+    } else if (text.style.textAlign === 'right') {
+      minX = size.width
+    }
+    
+    if (text.style.textBaseline === 'top') {
+      maxY = store.canvasHeight - size.height
+    } else if (text.style.textBaseline === 'middle') {
+      minY = size.height / 2
+      maxY = store.canvasHeight - size.height / 2
+    } else if (text.style.textBaseline === 'bottom') {
+      minY = size.height
+    }
+    
+    // 限制在画布范围内
+    newX = Math.max(minX, Math.min(maxX, newX))
+    newY = Math.max(minY, Math.min(maxY, newY))
+    
+    // 更新位置
+    store.updateText(draggingTextId.value, {
+      position: { x: newX, y: newY }
+    })
+    
+    pendingMouseEvent = null
   })
 }
 
@@ -196,6 +267,13 @@ function onMouseUp() {
     draggingTextId.value = null
     document.body.style.cursor = ''
   }
+  
+  // 清理RAF
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
+  pendingMouseEvent = null
 }
 </script>
 
@@ -207,6 +285,11 @@ function onMouseUp() {
   transform-origin: center center;
   pointer-events: none;
   z-index: 10;
+}
+
+/* 拖拽时layer接收所有事件，避免失去焦点 */
+.text-interaction-layer:has(.text-zone-dragging) {
+  pointer-events: auto;
 }
 
 .text-zone {
@@ -222,6 +305,7 @@ function onMouseUp() {
 
 .text-zone-dragging {
   cursor: grabbing;
+  transition: none !important;
 }
 
 .text-zone-hover .text-boundary,

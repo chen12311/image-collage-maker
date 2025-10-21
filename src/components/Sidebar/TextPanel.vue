@@ -266,8 +266,8 @@ function applyCustomFont() {
   const fontValue = `${customFont}, sans-serif`
   fontFamily.value = fontValue
   
-  // 清空输入
-  customFontInput.value = ''
+  // 不清空输入，保留自定义字体名称
+  // customFontInput.value = ''
 }
 
 /** 监听选中文字的变化，同步字体大小到侧边栏 */

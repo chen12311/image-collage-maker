@@ -1464,26 +1464,80 @@ export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
 }
 
 /**
+ * 创建布局配置（函数重载）
+ */
+export function createLayoutConfig(type?: string | LayoutTemplate): LayoutConfig
+export function createLayoutConfig(
+  type: string | LayoutTemplate,
+  paddingOrSpacing: number
+): LayoutConfig
+export function createLayoutConfig(
+  type: string | LayoutTemplate,
+  spacing: number,
+  padding: number,
+  radius?: number
+): LayoutConfig
+
+/**
  * 创建布局配置
+ * 
+ * 支持多种调用方式：
+ * 1. createLayoutConfig() - 全部使用默认值
+ * 2. createLayoutConfig('grid-2x2') - 指定布局，其他使用默认值
+ * 3. createLayoutConfig('grid-2x2', 20) - 指定布局和padding，spacing使用默认值
+ * 4. createLayoutConfig('grid-2x2', 10, 20) - 指定布局、spacing和padding
+ * 5. createLayoutConfig('grid-2x2', 10, 20, 5) - 完整指定所有参数
  */
 export function createLayoutConfig(
-  type: string = 'grid-2x1-h',
-  spacing: number = 10,
-  padding: number = 0,
+  type: string | LayoutTemplate = 'grid-2x1-h',
+  spacingOrPadding?: number,
+  padding?: number,
   radius: number = 0
 ): LayoutConfig {
-  const template = LAYOUT_MAP.get(type)
+  // 支持传入字符串ID或LayoutTemplate对象
+  let template: LayoutTemplate | undefined
+  let layoutId: string
+  
+  if (typeof type === 'string') {
+    layoutId = type
+    template = LAYOUT_MAP.get(type)
+  } else {
+    // 传入的是LayoutTemplate对象
+    template = type
+    layoutId = type.id
+  }
   
   if (!template) {
-    console.warn(`未找到布局模板: ${type}，使用默认布局`)
+    console.warn(`未找到布局模板: ${layoutId}，使用默认布局`)
     return DEFAULT_LAYOUT_CONFIG
   }
   
+  // 参数处理逻辑：
+  // - 如果只传了2个参数，第二个参数同时应用于spacing和padding
+  // - 如果传了3个或更多参数，则按 spacing, padding, radius 顺序
+  let finalSpacing: number
+  let finalPadding: number
+  
+  if (padding === undefined && spacingOrPadding !== undefined) {
+    // 只传了2个参数：createLayoutConfig(type, value)
+    // value 同时应用于 spacing 和 padding
+    finalSpacing = spacingOrPadding
+    finalPadding = spacingOrPadding
+  } else if (padding !== undefined && spacingOrPadding !== undefined) {
+    // 传了3个或更多参数：createLayoutConfig(type, spacing, padding, radius?)
+    finalSpacing = spacingOrPadding
+    finalPadding = padding
+  } else {
+    // 只传了1个参数或没传参数，使用默认值
+    finalSpacing = 10
+    finalPadding = 0
+  }
+  
   return {
-    type,
+    type: layoutId,
     cells: template.cells,
-    spacing,
-    padding,
+    spacing: finalSpacing,
+    padding: finalPadding,
     radius
   }
 }

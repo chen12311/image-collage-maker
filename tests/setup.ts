@@ -10,6 +10,14 @@ if (typeof global.Vue === 'undefined') {
   global.Vue = {} as any
 }
 
+// Mock VueCompilerDOM for @vue/test-utils
+if (typeof global.VueCompilerDOM === 'undefined') {
+  global.VueCompilerDOM = {
+    compile: jest.fn(() => ({ code: '' })),
+    parse: jest.fn(() => ({}))
+  } as any
+}
+
 // Mock浏览器API
 global.ResizeObserver = class ResizeObserver {
   observe() {}

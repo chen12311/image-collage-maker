@@ -1,6 +1,9 @@
 export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'jsdom',
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons'],
+  },
   extensionsToTreatAsEsm: ['.ts'],
   
   // 转换配置 - 新的ts-jest配置方式
@@ -14,10 +17,8 @@ export default {
   // Vue 全局配置
   globals: {
     'vue-jest': {
-      tsConfig: {
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true
-      }
+      tsConfig: 'tsconfig.json',
+      babelConfig: false
     }
   },
   

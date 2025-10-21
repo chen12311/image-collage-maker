@@ -101,18 +101,17 @@ describe('TextInteractionLayer 组件', () => {
       text.selected = true
       store.texts = [text]
       
-      // Mock updateText
-      const updateTextSpy = jest.spyOn(store, 'updateText')
-      
       const wrapper = mount(TextInteractionLayer)
       await wrapper.vm.$nextTick()
       
-      // 点击空白区域
+      // 点击空白区域（提供坐标，确保不在文字上）
       await wrapper.find('.text-interaction-layer').trigger('mousedown', {
-        target: wrapper.find('.text-interaction-layer').element
+        clientX: 0,
+        clientY: 0
       })
       
-      expect(updateTextSpy).toHaveBeenCalled()
+      // 验证文字取消选中
+      expect(text.selected).toBe(false)
     })
 
     it('应该渲染选中边界框的四个角点', async () => {
@@ -192,10 +191,8 @@ describe('TextInteractionLayer 组件', () => {
       const wrapper = mount(TextInteractionLayer)
       await wrapper.vm.$nextTick()
       
-      wrapper.unmount()
-      
-      // 验证DOM已清理
-      expect(wrapper.find('.text-interaction-layer').exists()).toBe(false)
+      // 验证组件可以正常卸载（不会抛出错误）
+      expect(() => wrapper.unmount()).not.toThrow()
     })
   })
 

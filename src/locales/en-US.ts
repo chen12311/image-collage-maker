@@ -149,6 +149,8 @@ export default {
     textAdded: 'Text added',
     textRemoved: 'Text removed',
     allTextsCleared: 'All texts cleared',
+    fontNotAvailable: 'Font "{font}" is not available on your system. Please check the font name or install it',
+    fontApplied: 'Font applied',
     
     // Background related
     bgImageUploaded: 'Background image uploaded',

@@ -262,12 +262,21 @@ function applyCustomFont() {
   const customFont = customFontInput.value.trim()
   if (!customFont) return
   
+  // 检测字体是否可用
+  if (!isFontAvailable(customFont)) {
+    toast.error(t('toast.fontNotAvailable', { font: customFont }))
+    return
+  }
+  
   // 构造 font-family 值（添加降级字体）
   const fontValue = `${customFont}, sans-serif`
   fontFamily.value = fontValue
   
-  // 不清空输入，保留自定义字体名称
-  // customFontInput.value = ''
+  // 显示成功提示
+  toast.success(t('toast.fontApplied'))
+  
+  // 清空输入，便于下次输入
+  customFontInput.value = ''
 }
 
 /** 监听选中文字的变化，同步字体大小到侧边栏 */

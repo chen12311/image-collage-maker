@@ -149,6 +149,8 @@ export default {
     textAdded: '文字已添加',
     textRemoved: '已删除文字',
     allTextsCleared: '已清空所有文字',
+    fontNotAvailable: '字体 "{font}" 在您的系统中不可用，请检查字体名称或安装该字体',
+    fontApplied: '字体已应用',
     
     // 背景相关
     bgImageUploaded: '背景图片已上传',

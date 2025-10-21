@@ -7,13 +7,25 @@ export default {
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       useESM: true
-    }]
+    }],
+    '^.+\\.vue$': '@vue/vue3-jest'
+  },
+  
+  // Vue 全局配置
+  globals: {
+    'vue-jest': {
+      tsConfig: {
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true
+      }
+    }
   },
   
   // 测试文件匹配模式
   testMatch: [
     '**/tests/unit/**/*.test.ts',
-    '**/tests/integration/**/*.test.ts'
+    '**/tests/integration/**/*.test.ts',
+    '**/tests/unit/components/**/*.test.ts'
   ],
   
   // 模块路径映射
@@ -24,12 +36,15 @@ export default {
   },
   
   // 模块文件扩展名
-  moduleFileExtensions: ['ts', 'js', 'json'],
+  moduleFileExtensions: ['ts', 'js', 'json', 'vue'],
   
   // 覆盖率配置 - 专注核心算法
   collectCoverageFrom: [
     'src/core/**/*.ts',
     'src/layout/**/*.ts',
+    'src/store/**/*.ts',
+    'src/history/**/*.ts',
+    'src/rendering/**/*.ts',
     '!src/**/*.d.ts',
     '!src/**/index.ts'
   ],

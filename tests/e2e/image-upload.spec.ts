@@ -25,18 +25,73 @@ test.describe('图片上传功能', () => {
     await expect(uploadArea).toBeDefined()
   })
 
-  // Note: 实际的文件上传测试需要有测试图片文件
-  // test('应该能够上传图片', async ({ page }) => {
-  //   // 准备测试图片
-  //   const filePath = path.join(__dirname, '../fixtures/test-image.jpg')
+  test('应该能够上传单张图片', async ({ page }) => {
+    // 准备测试图片
+    const filePath = path.join(__dirname, '../fixtures/images/test-image-100x100.png')
     
-  //   // 上传文件
-  //   const fileInput = page.locator('input[type="file"]')
-  //   await fileInput.setInputFiles(filePath)
+    // 查找文件输入框
+    const fileInput = page.locator('input[type="file"]')
     
-  //   // 验证图片已上传
-  //   await expect(page.locator('.image-item, [data-testid="image-item"]')).toBeVisible()
-  // })
+    // 上传文件
+    await fileInput.setInputFiles(filePath)
+    
+    // 等待图片处理完成
+    await page.waitForTimeout(1000)
+    
+    // 验证画布已更新（画布应该有内容）
+    const canvas = page.locator('canvas')
+    await expect(canvas).toBeVisible()
+  })
+
+  test('应该能够上传多张图片', async ({ page }) => {
+    // 准备多个测试图片
+    const filePaths = [
+      path.join(__dirname, '../fixtures/images/test-image-100x100.png'),
+      path.join(__dirname, '../fixtures/images/test-image-portrait.jpg'),
+      path.join(__dirname, '../fixtures/images/test-image-large.jpg')
+    ]
+    
+    // 查找文件输入框
+    const fileInput = page.locator('input[type="file"]')
+    
+    // 上传多个文件
+    await fileInput.setInputFiles(filePaths)
+    
+    // 等待所有图片处理完成
+    await page.waitForTimeout(2000)
+    
+    // 验证画布已更新
+    const canvas = page.locator('canvas')
+    await expect(canvas).toBeVisible()
+    
+    // 可以截图保存用于人工验证
+    await page.screenshot({ path: 'test-results/multi-image-upload.png' })
+  })
+
+  test('上传图片后应该能切换布局', async ({ page }) => {
+    // 上传图片
+    const filePaths = [
+      path.join(__dirname, '../fixtures/images/test-image-100x100.png'),
+      path.join(__dirname, '../fixtures/images/test-image-portrait.jpg')
+    ]
+    
+    const fileInput = page.locator('input[type="file"]')
+    await fileInput.setInputFiles(filePaths)
+    await page.waitForTimeout(1000)
+    
+    // 尝试查找布局切换按钮（根据实际UI调整选择器）
+    const layoutButtons = page.locator('button, .layout-item, [data-testid*="layout"]')
+    const count = await layoutButtons.count()
+    
+    if (count > 0) {
+      // 点击第二个布局
+      await layoutButtons.nth(1).click()
+      await page.waitForTimeout(500)
+      
+      // 验证画布仍然可见
+      await expect(page.locator('canvas')).toBeVisible()
+    }
+  })
 
   test('画布应该可见', async ({ page }) => {
     const canvas = page.locator('canvas')

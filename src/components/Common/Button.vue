@@ -7,7 +7,7 @@
   >
     <span v-if="loading" class="btn-spinner"></span>
     <Icon v-if="icon && !loading" :name="icon" :size="iconSize" class="btn-icon" />
-    <span v-if="$slots.default" class="btn-text">
+    <span v-if="$slots.default" class="btn-label">
       <slot />
     </span>
   </button>
@@ -231,7 +231,8 @@ function handleClick(event: MouseEvent) {
   flex-shrink: 0;
 }
 
-.btn-text {
+/* 按钮文字标签 */
+.btn-label {
   flex: 1;
 }
 </style>

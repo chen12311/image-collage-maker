@@ -54,7 +54,12 @@
           @click="selectOption(option)"
           @mouseenter="!option.disabled && (highlightedIndex = index)"
         >
-          <span class="select-option-label">{{ option.label }}</span>
+          <span 
+            class="select-option-label"
+            :style="option.fontFamily ? { fontFamily: option.fontFamily } : undefined"
+          >
+            {{ option.label }}
+          </span>
           <Icon 
             v-if="option.value === modelValue" 
             name="check" 
@@ -81,6 +86,7 @@ export interface SelectOption {
   label: string
   value: string | number
   disabled?: boolean  // 是否禁用
+  fontFamily?: string  // 自定义字体（用于预览）
 }
 
 /** Select 属性 */

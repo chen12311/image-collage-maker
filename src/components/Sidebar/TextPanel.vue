@@ -215,6 +215,7 @@ const selectedText = computed(() => {
 /** 
  * 生成字体选择器选项
  * 不可用字体标记为禁用并置灰
+ * 每个选项用自己的字体显示，实现字体预览效果
  */
 const fontFamilies = computed<SelectOption[]>(() => {
   return PRESET_FONTS.map(font => {
@@ -224,10 +225,13 @@ const fontFamilies = computed<SelectOption[]>(() => {
                      font.category === 'monospace' ? ', monospace' :
                      font.category === 'cursive' ? ', cursive' : ', sans-serif'
     
+    const fullFontFamily = `${font.value}${fallback}`
+    
     return {
       label: font.label,
-      value: `${font.value}${fallback}`,
-      disabled: !isAvailable  // 不可用字体禁用
+      value: fullFontFamily,
+      disabled: !isAvailable,  // 不可用字体禁用
+      fontFamily: fullFontFamily  // 用于预览字体效果
     }
   })
 })

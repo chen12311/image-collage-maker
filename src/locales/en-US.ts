@@ -151,6 +151,8 @@ export default {
     allTextsCleared: 'All texts cleared',
     fontNotAvailable: 'Font "{font}" is not available on your system. Please check the font name or install it',
     fontApplied: 'Font applied',
+    pleaseApplyFontFirst: 'Please apply the custom font first or clear the font input',
+    invalidFontCantAdd: 'Font "{font}" is not available, cannot add text. Font input cleared, please use default font or select another',
     
     // Background related
     bgImageUploaded: 'Background image uploaded',

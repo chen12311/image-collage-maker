@@ -151,6 +151,8 @@ export default {
     allTextsCleared: '已清空所有文字',
     fontNotAvailable: '字体 "{font}" 在您的系统中不可用，请检查字体名称或安装该字体',
     fontApplied: '字体已应用',
+    pleaseApplyFontFirst: '请先应用自定义字体或清空字体输入框',
+    invalidFontCantAdd: '字体 "{font}" 不可用，无法添加文字。已清空字体输入框，请使用默认字体或选择其他字体',
     
     // 背景相关
     bgImageUploaded: '背景图片已上传',

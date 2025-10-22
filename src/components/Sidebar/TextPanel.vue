@@ -265,6 +265,7 @@ function applyCustomFont() {
   // 检测字体是否可用
   if (!isFontAvailable(customFont)) {
     toast.error(t('toast.fontNotAvailable', { font: customFont }))
+    // 不清空输入框，让 addText 能检测到有未应用的字体
     return
   }
   
@@ -340,6 +341,22 @@ function addText() {
   if (!textContent.value.trim()) {
     toast.warning(t('toast.pleaseInputText'))
     return
+  }
+  
+  // 检查是否有未应用的自定义字体
+  const pendingFont = customFontInput.value.trim()
+  if (pendingFont) {
+    // 再次验证字体是否有效（可能是无效字体）
+    if (!isFontAvailable(pendingFont)) {
+      toast.error(t('toast.invalidFontCantAdd', { font: pendingFont }))
+      // 清空无效字体输入
+      customFontInput.value = ''
+      return
+    } else {
+      // 字体有效但未应用，提示用户
+      toast.warning(t('toast.pleaseApplyFontFirst'))
+      return
+    }
   }
   
   // 在画布中心添加文字

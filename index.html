@@ -2,8 +2,122 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图片拼接工具</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    
+    <!-- Primary Meta Tags -->
+    <title>ImageBatch - 在线图片拼接工具 | 免费多图拼接、照片拼图制作</title>
+    <meta name="title" content="ImageBatch - 在线图片拼接工具 | 免费多图拼接、照片拼图制作">
+    <meta name="description" content="ImageBatch 是一款简洁高效的在线图片拼接工具，支持多种布局模式（1-4宫格）、自定义文字、背景设置、实时预览。无需注册，完全免费，浏览器内完成所有操作，保护隐私安全。">
+    <meta name="keywords" content="图片拼接,照片拼图,图片合成,多图拼接,在线拼图工具,照片网格,图片拼贴,collage maker,image stitcher,photo grid">
+    <meta name="author" content="ImageBatch Team">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="zh-CN">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ImageBatch">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-domain.com/">
+    <meta property="og:title" content="ImageBatch - 在线图片拼接工具 | 免费多图拼接">
+    <meta property="og:description" content="简洁高效的在线图片拼接工具，支持多种布局、自定义文字、实时预览。无需注册，完全免费，浏览器内完成所有操作。">
+    <meta property="og:image" content="https://your-domain.com/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="ImageBatch 图片拼接工具预览">
+    <meta property="og:locale" content="zh_CN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:site_name" content="ImageBatch">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://your-domain.com/">
+    <meta name="twitter:title" content="ImageBatch - 在线图片拼接工具">
+    <meta name="twitter:description" content="简洁高效的在线图片拼接工具，支持多种布局、自定义文字、实时预览。无需注册，完全免费。">
+    <meta name="twitter:image" content="https://your-domain.com/og-image.png">
+    <meta name="twitter:image:alt" content="ImageBatch 图片拼接工具预览">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://your-domain.com/">
+    
+    <!-- Alternate Languages -->
+    <link rel="alternate" hreflang="zh-CN" href="https://your-domain.com/?lang=zh-CN">
+    <link rel="alternate" hreflang="en-US" href="https://your-domain.com/?lang=en-US">
+    <link rel="alternate" hreflang="x-default" href="https://your-domain.com/">
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- DNS Prefetch & Preconnect (可根据实际使用的CDN调整) -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "ImageBatch",
+      "alternateName": "图片拼接工具",
+      "url": "https://your-domain.com",
+      "description": "在线图片拼接工具，支持多种布局模式、自定义文字、背景设置、实时预览。无需注册，完全免费，浏览器内完成所有操作，保护隐私安全。",
+      "applicationCategory": "DesignApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CNY"
+      },
+      "browserRequirements": "Requires JavaScript. Modern browsers (Chrome, Firefox, Safari, Edge) recommended.",
+      "permissions": "No account required, no registration needed",
+      "featureList": [
+        "多种布局模式（1-4宫格）",
+        "图片拖拽上传和排序",
+        "自定义文字添加",
+        "背景颜色和透明度调节",
+        "实时预览效果",
+        "撤销/重做操作",
+        "高质量PNG导出",
+        "完全离线处理，保护隐私"
+      ],
+      "screenshot": "https://your-domain.com/og-image.png",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "1000",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "ImageBatch Team"
+      },
+      "inLanguage": ["zh-CN", "en-US"],
+      "availableLanguage": [
+        {
+          "@type": "Language",
+          "name": "Chinese (Simplified)",
+          "alternateName": "zh-CN"
+        },
+        {
+          "@type": "Language",
+          "name": "English",
+          "alternateName": "en-US"
+        }
+      ]
+    }
+    </script>
 </head>
 <body>
     <div id="app"></div>

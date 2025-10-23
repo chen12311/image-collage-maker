@@ -146,7 +146,7 @@ const hasSelectedText = computed(() => {
 const layerStyle = computed(() => ({
   width: `${store.canvasWidth}px`,
   height: `${store.canvasHeight}px`,
-  transform: `translate(-50%, -50%) scale(${store.canvasScale})`
+  transform: `translate(-50%, -50%)`
 }))
 
 /** 获取文字热区样式 */

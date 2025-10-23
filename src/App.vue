@@ -132,6 +132,7 @@ import { useSidebar } from './composables/useResponsive'
 import { useKeyboard, SHORTCUTS } from './composables/useKeyboard'
 import { useAppStore } from './store/useAppStore'
 import { availableLocales, type Locale } from './locales'
+import { updateAllSEOTags } from './utils/seo'
 
 const store = useAppStore()
 const { sidebarCollapsed, toggleSidebar } = useSidebar()
@@ -173,6 +174,9 @@ function handleClickOutside(e: MouseEvent) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  
+  // 初始化 SEO 标签（根据当前语言）
+  updateAllSEOTags(store.locale)
 })
 
 onUnmounted(() => {

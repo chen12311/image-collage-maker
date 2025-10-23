@@ -36,6 +36,7 @@ import { createHistoryManager } from '@/history/HistoryManager'
 import { toast } from '@/composables/useToast'
 import { i18n, saveLocale } from '@/i18n'
 import type { Locale } from '@/locales'
+import { updateAllSEOTags } from '@/utils/seo'
 
 /**
  * 应用Store
@@ -429,6 +430,9 @@ export const useAppStore = defineStore('app', () => {
     locale.value = newLocale
     i18n.global.locale.value = newLocale
     saveLocale(newLocale)
+    
+    // 更新 SEO 标签
+    updateAllSEOTags(newLocale)
   }
   
   // ============================================================================

@@ -111,11 +111,11 @@ const computedCells = computed(() => {
 /** 图片列表 */
 const images = computed(() => store.images)
 
-/** 交互层样式（与画布尺寸和缩放精确匹配） */
+/** 交互层样式（与画布尺寸精确匹配，缩放由父元素 canvas-wrapper 处理） */
 const layerStyle = computed(() => ({
   width: `${store.canvasWidth}px`,
   height: `${store.canvasHeight}px`,
-  transform: `translate(-50%, -50%) scale(${store.canvasScale})`
+  transform: `translate(-50%, -50%)`
 }))
 
 /** 是否应该显示添加图片引导区域 */

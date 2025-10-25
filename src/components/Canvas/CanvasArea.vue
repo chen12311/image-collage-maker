@@ -141,7 +141,13 @@
     </div>
     
     <!-- 画布容器 -->
-    <div ref="canvasContainer" class="canvas-container checkerboard">
+    <div 
+      ref="canvasContainer" 
+      :class="['canvas-container', 'checkerboard', { 'canvas-dragging': isCanvasDragging }]"
+      @drop="handleCanvasDrop"
+      @dragover.prevent="handleCanvasDragOver"
+      @dragleave="handleCanvasDragLeave"
+    >
       <div 
         class="canvas-wrapper"
         :style="{ transform: `scale(${store.canvasScale})` }"
@@ -168,6 +174,7 @@ import { toast } from '@/composables/useToast'
 import { useKeyboard, SHORTCUTS } from '@/composables/useKeyboard'
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
+import { createImageElements } from '@/core/models'
 
 const store = useAppStore()
 const { t } = useI18n()
@@ -194,6 +201,9 @@ const customHeight = ref(800)
 
 /** 导出中 */
 const isExporting = ref(false)
+
+/** 画布拖拽状态 */
+const isCanvasDragging = ref(false)
 
 /** 监听预设变化 */
 watch(currentPreset, (preset) => {
@@ -273,6 +283,49 @@ function handleWheel(event: WheelEvent) {
   const delta = event.deltaY > 0 ? -0.05 : 0.05
   const newScale = Math.max(0.1, Math.min(2, store.canvasScale + delta))
   store.setCanvasScale(newScale)
+}
+
+/** 画布拖拽经过 */
+function handleCanvasDragOver(e: DragEvent) {
+  // 检查是否是文件拖拽
+  if (e.dataTransfer?.types.includes('Files')) {
+    isCanvasDragging.value = true
+  }
+}
+
+/** 画布拖拽离开 */
+function handleCanvasDragLeave(e: DragEvent) {
+  // 确保真的离开了容器（不是进入子元素）
+  if (e.target === canvasContainer.value) {
+    isCanvasDragging.value = false
+  }
+}
+
+/** 画布拖拽放置 */
+async function handleCanvasDrop(e: DragEvent) {
+  e.preventDefault()
+  isCanvasDragging.value = false
+  
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+  
+  try {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
+    
+    if (imageFiles.length === 0) {
+      toast.warning('请拖拽图片文件')
+      return
+    }
+    
+    const imageElements = await createImageElements(imageFiles)
+    
+    // 添加到末尾
+    store.addImages(imageElements)
+    toast.success(`成功添加 ${imageElements.length} 张图片`)
+  } catch (error) {
+    console.error('图片加载失败:', error)
+    toast.error('部分图片加载失败，请重试')
+  }
 }
 
 // 注册撤销/重做快捷键
@@ -573,6 +626,19 @@ onUnmounted(() => {
   overflow: auto;
   padding: var(--spacing-6);
   min-height: 0;
+  position: relative;
+  transition: var(--transition-base);
+}
+
+.canvas-container.canvas-dragging::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 119, 255, 0.1);
+  border: 3px dashed var(--color-primary-500);
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .canvas-wrapper {

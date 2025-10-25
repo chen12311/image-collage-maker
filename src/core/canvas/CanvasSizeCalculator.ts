@@ -6,7 +6,6 @@
  */
 
 import type { ImageElement } from '@/core/models'
-import type { LongImageDirection } from '@/layout/LongImageLayoutGenerator'
 
 /**
  * 尺寸计算模式
@@ -32,8 +31,8 @@ export interface SizeCalculationConfig {
   /** 计算模式 */
   mode: SizeCalculationMode
   
-  /** 长图方向 */
-  direction: LongImageDirection
+  /** 方向（'vertical' | 'horizontal'，可选） */
+  direction?: 'vertical' | 'horizontal'
   
   /** 固定宽度（当mode为fixed-width时使用） */
   fixedWidth?: number
@@ -98,10 +97,10 @@ export class CanvasSizeCalculator {
     
     if (validImages.length === 0) {
       // 没有图片时返回默认尺寸
-      return this.getDefaultSize(config.direction)
+      return this.getDefaultSize(config.direction || 'vertical')
     }
     
-    const { mode, direction, spacing = 0, padding = 0 } = config
+    const { mode, direction } = config
     
     switch (mode) {
       case 'fixed-width':
@@ -122,7 +121,7 @@ export class CanvasSizeCalculator {
       case 'preset':
       default:
         // 预设模式不计算，由外部指定
-        return this.getDefaultSize(direction)
+        return this.getDefaultSize(direction || 'vertical')
     }
   }
   
@@ -228,7 +227,7 @@ export class CanvasSizeCalculator {
   /**
    * 获取默认尺寸
    */
-  private static getDefaultSize(direction: LongImageDirection): CanvasSize {
+  private static getDefaultSize(direction: 'vertical' | 'horizontal'): CanvasSize {
     if (direction === 'vertical') {
       return {
         width: this.DEFAULT_VERTICAL_WIDTH,
@@ -274,7 +273,7 @@ export class CanvasSizeCalculator {
    */
   static estimate(
     imageCount: number,
-    direction: LongImageDirection,
+    direction: 'vertical' | 'horizontal',
     avgSize: { width: number; height: number }
   ): CanvasSize {
     if (direction === 'vertical') {

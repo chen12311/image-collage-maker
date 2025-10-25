@@ -5,12 +5,18 @@
       v-for="(cell, index) in computedCells"
       :key="`zone-${index}`"
       class="interaction-zone"
-      :class="{ 'zone-has-image': images[index] && images[index] !== null }"
+      :class="{ 
+        'zone-has-image': images[index] && images[index] !== null,
+        'zone-drag-over': dragOverZoneIndex === index && (!images[index] || images[index] === null)
+      }"
       :style="getZoneStyle(cell)"
       @mouseenter="handleMouseEnter(index)"
       @mouseleave="handleMouseLeave(index)"
       @mousedown="handleDragStart(index, $event)"
       @click="handleZoneClick(index)"
+      @dragover.prevent="handleZoneDragOver(index, $event)"
+      @dragleave="handleZoneDragLeave(index)"
+      @drop.prevent="handleZoneDrop(index, $event)"
     />
     
     <!-- 长图模式：添加图片引导区域 -->
@@ -35,7 +41,7 @@
     <!-- 全局控件（只有一个实例，根据 hoveredIndex 动态定位） -->
     <Transition name="controls-fade">
       <ImageControls
-        v-if="hoveredIndex !== null && images[hoveredIndex] && computedCells[hoveredIndex]"
+        v-if="hoveredIndex !== null && images[hoveredIndex] && images[hoveredIndex] !== null && computedCells[hoveredIndex]"
         :key="`controls-${hoveredIndex}`"
         :x="computedCells[hoveredIndex].x"
         :y="computedCells[hoveredIndex].y"
@@ -43,10 +49,10 @@
         :height="computedCells[hoveredIndex].height"
         @mouseenter="handleControlsEnter"
         @mouseleave="handleControlsLeave"
-        @flip-horizontal="handleFlipHorizontal(images[hoveredIndex].id)"
-        @flip-vertical="handleFlipVertical(images[hoveredIndex].id)"
-        @rotate="handleRotate(images[hoveredIndex].id)"
-        @delete="handleDelete(images[hoveredIndex].id)"
+        @flip-horizontal="handleFlipHorizontal(images[hoveredIndex]!.id)"
+        @flip-vertical="handleFlipVertical(images[hoveredIndex]!.id)"
+        @rotate="handleRotate(images[hoveredIndex]!.id)"
+        @delete="handleDelete(images[hoveredIndex]!.id)"
       />
     </Transition>
     
@@ -86,6 +92,7 @@ const fileInput = ref<HTMLInputElement>()
 const addZoneFileInput = ref<HTMLInputElement>() // 添加区域专用的文件输入
 const targetIndex = ref<number>(-1) // 记录点击的目标位置
 const isAddZoneDragging = ref(false) // 添加区域的拖拽状态
+const dragOverZoneIndex = ref<number | null>(null) // 拖拽经过的空白单元格索引
 
 /** 延迟隐藏控件的计时器 */
 let hideTimer: ReturnType<typeof setTimeout> | null = null
@@ -120,58 +127,12 @@ const layerStyle = computed(() => ({
 
 /** 是否应该显示添加图片引导区域 */
 const shouldShowAddZone = computed(() => {
-  // 只在长图模式下显示
-  if (!store.longImageMode) return false
-  
-  // 需要有至少一张图片
-  const validImages = images.value.filter(img => img && img !== null)
-  if (validImages.length === 0) return false
-  
-  return true
+  return false
 })
 
 /** 计算添加图片引导区域的样式 */
 function getAddZoneStyle() {
-  // 获取有效图片数量
-  const validImages = images.value.filter(img => img && img !== null)
-  const imageCount = validImages.length
-  
-  // 获取下一个单元格的位置（索引为 imageCount）
-  const nextCell = computedCells.value[imageCount]
-  
-  if (!nextCell) {
-    // 如果没有下一个单元格，根据方向计算位置
-    const lastCell = computedCells.value[imageCount - 1]
-    if (!lastCell) return {}
-    
-    const isVertical = store.longImageDirection === 'vertical'
-    
-    if (isVertical) {
-      // 竖向：在最后一张图片下方
-      return {
-        left: `${lastCell.x}px`,
-        top: `${lastCell.y + lastCell.height + store.spacing}px`,
-        width: `${lastCell.width}px`,
-        height: `${lastCell.height}px`
-      }
-    } else {
-      // 横向：在最后一张图片右侧
-      return {
-        left: `${lastCell.x + lastCell.width + store.spacing}px`,
-        top: `${lastCell.y}px`,
-        width: `${lastCell.width}px`,
-        height: `${lastCell.height}px`
-      }
-    }
-  }
-  
-  // 使用下一个单元格的位置
-  return {
-    left: `${nextCell.x}px`,
-    top: `${nextCell.y}px`,
-    width: `${nextCell.width}px`,
-    height: `${nextCell.height}px`
-  }
+  return {}
 }
 
 /** 获取热区样式 */
@@ -364,6 +325,58 @@ async function handleAddZoneDrop(e: DragEvent) {
     // 添加到末尾
     store.addImages(imageElements)
     toast.success(`成功添加 ${imageElements.length} 张图片`)
+  } catch (error) {
+    console.error('图片加载失败:', error)
+    toast.error('部分图片加载失败，请重试')
+  }
+}
+
+/** 空白单元格拖拽经过 */
+function handleZoneDragOver(index: number, e: DragEvent) {
+  // 只处理空白单元格
+  if (images.value[index] && images.value[index] !== null) {
+    return
+  }
+  
+  // 检查是否是文件拖拽（而非图片内部拖拽）
+  if (e.dataTransfer?.types.includes('Files')) {
+    dragOverZoneIndex.value = index
+  }
+}
+
+/** 空白单元格拖拽离开 */
+function handleZoneDragLeave(index: number) {
+  if (dragOverZoneIndex.value === index) {
+    dragOverZoneIndex.value = null
+  }
+}
+
+/** 空白单元格拖拽放置 */
+async function handleZoneDrop(index: number, e: DragEvent) {
+  e.preventDefault()
+  dragOverZoneIndex.value = null
+  
+  // 只处理空白单元格
+  if (images.value[index] && images.value[index] !== null) {
+    return
+  }
+  
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+  
+  try {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
+    
+    if (imageFiles.length === 0) {
+      toast.warning('请拖拽图片文件')
+      return
+    }
+    
+    const imageElements = await createImageElements(imageFiles)
+    
+    // 在指定位置插入图片
+    store.insertImagesAt(index, imageElements)
+    toast.success(`已在位置 ${index + 1} 插入 ${imageElements.length} 张图片`)
   } catch (error) {
     console.error('图片加载失败:', error)
     toast.error('部分图片加载失败，请重试')
@@ -567,6 +580,12 @@ onUnmounted(() => {
 
 .interaction-zone.zone-has-image {
   cursor: move;
+}
+
+.interaction-zone.zone-drag-over {
+  background-color: rgba(22, 119, 255, 0.15);
+  border: 2px dashed var(--color-primary-500);
+  box-sizing: border-box;
 }
 
 /* 添加图片引导区域 */

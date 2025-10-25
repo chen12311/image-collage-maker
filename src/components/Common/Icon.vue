@@ -108,15 +108,13 @@ const iconComponents: Record<string, any> = {
   
   'arrow-down': defineComponent({
     render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
-      h('line', { x1: '12', y1: '5', x2: '12', y2: '19' }),
-      h('polyline', { points: '19 12 12 19 5 12' })
+      h('path', { d: 'M12 5v14m0 0l-5-5m5 5l5-5' })
     ])
   }),
   
   'arrow-right': defineComponent({
     render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
-      h('line', { x1: '5', y1: '12', x2: '19', y2: '12' }),
-      h('polyline', { points: '12 5 19 12 12 19' })
+      h('path', { d: 'M5 12h14m0 0l-5-5m5 5l-5 5' })
     ])
   }),
   

@@ -220,8 +220,7 @@ tests/
 │   ├── history/          # 历史管理测试
 │   │   └── HistoryManager.test.ts
 │   ├── layout/           # 布局引擎测试
-│   │   ├── LayoutEngine.test.ts
-│   │   └── LongImageLayoutGenerator.test.ts
+│   │   └── LayoutEngine.test.ts
 │   ├── rendering/        # 渲染器测试
 │   │   └── CanvasRenderer.test.ts
 │   └── store/            # 状态管理测试

@@ -30,10 +30,6 @@ export default {
     
     layout: {
       title: 'Layout',
-      enableLongImage: 'Enable Long Image Mode',
-      direction: 'Stitch Direction',
-      vertical: 'Vertical',
-      horizontal: 'Horizontal',
       layoutParams: 'Layout Parameters',
       spacing: 'Spacing',
       padding: 'Padding',

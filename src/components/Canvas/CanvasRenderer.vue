@@ -26,11 +26,11 @@ function calculateScale() {
   // 防止组件卸载后执行
   if (!isMounted.value || !canvasRef.value) return
   
-  // 获取父容器（.canvas-wrapper 的父元素 .canvas-container）
-  const parentElement = canvasRef.value.parentElement
+  // 安全获取父容器（.canvas-wrapper 的父元素 .canvas-container）
+  const parentElement = canvasRef.value?.parentElement
   if (!parentElement) return
   
-  const container = parentElement.parentElement
+  const container = parentElement?.parentElement
   if (!container) return
   
   // 获取容器尺寸
@@ -103,13 +103,7 @@ watch(
     store.canvasWidth,
     store.canvasHeight,
     store.images,
-    store.texts,
-    // 长图模式状态
-    store.longImageMode,
-    store.longImageDirection,
-    store.sizeCalculationMode,
-    store.fixedWidth,
-    store.fixedHeight
+    store.texts
   ],
   () => {
     nextTick(() => render())
@@ -147,10 +141,10 @@ onMounted(() => {
   
   // 监听容器尺寸变化
   if (canvasRef.value) {
-    const parentElement = canvasRef.value.parentElement
+    const parentElement = canvasRef.value?.parentElement
     if (!parentElement) return
     
-    const container = parentElement.parentElement
+    const container = parentElement?.parentElement
     if (container) {
       resizeObserver = new ResizeObserver(() => {
         calculateScale()

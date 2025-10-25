@@ -30,10 +30,6 @@ export default {
     
     layout: {
       title: '布局',
-      enableLongImage: '启用长图模式',
-      direction: '拼接方向',
-      vertical: '竖向',
-      horizontal: '横向',
       layoutParams: '布局参数',
       spacing: '间距',
       padding: '边距',

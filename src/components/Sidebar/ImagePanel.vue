@@ -35,7 +35,7 @@
       <!-- 图片列表 -->
       <div v-if="store.hasImages" class="image-list-section">
         <div class="section-header">
-          <span class="image-count">{{ $t('sidebar.image.uploaded', { count: store.images.length }) }}</span>
+          <span class="image-count">{{ $t('sidebar.image.uploaded', { count: validImages.length }) }}</span>
           <Button
             variant="text"
             size="sm"
@@ -45,28 +45,28 @@
           </Button>
         </div>
         
-        <TransitionGroup name="image-list" tag="div" class="image-list">
+        <div class="image-list">
           <div
-            v-for="(image, index) in store.images"
-            :key="image.id"
-            :class="['image-item', { 'image-dragging': dragIndex === index }]"
+            v-for="item in validImages"
+            :key="item.image.id"
+            :class="['image-item', { 'image-dragging': dragIndex === item.index }]"
             draggable="true"
-            @dragstart="onDragStart(index, $event)"
-            @dragover.prevent="onDragOver(index)"
+            @dragstart="onDragStart(item.index, $event)"
+            @dragover.prevent="onDragOver(item.index)"
             @dragend="onDragEnd"
-            @drop.prevent="onDropImage(index)"
+            @drop.prevent="onDropImage(item.index)"
           >
             <div class="image-preview">
-              <img :src="image.src" :alt="image.fileName">
+              <img :src="item.image.src" :alt="item.image.fileName">
               <div class="image-overlay">
-                <div class="image-index">{{ index + 1 }}</div>
+                <div class="image-index">{{ item.index + 1 }}</div>
               </div>
             </div>
-            <button class="image-remove" @click.stop="removeImage(image.id)">
+            <button class="image-remove" @click.stop="removeImage(item.image.id)">
               <Icon name="trash" size="sm" />
             </button>
           </div>
-        </TransitionGroup>
+        </div>
       </div>
       
       <!-- 空状态提示 -->
@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import { createImageElements } from '@/core/models'
 import Icon from '@/components/Common/Icon.vue'
@@ -93,6 +93,13 @@ const fileInput = ref<HTMLInputElement>()
 const isDragging = ref(false)
 const dragIndex = ref<number>(-1)
 const dragOverIndex = ref<number>(-1)
+
+/** 只获取有效的图片（过滤掉 null） */
+const validImages = computed(() => {
+  return store.images
+    .map((image, index) => ({ image, index }))
+    .filter(item => item.image && item.image !== null)
+})
 
 /** 触发文件选择 */
 function triggerUpload() {
@@ -424,19 +431,5 @@ function onDropImage(targetIndex: number) {
 .empty-state p {
   margin: 0;
   font-size: var(--font-size-sm);
-}
-
-/* 列表动画 */
-.image-list-move {
-  transition: transform var(--duration-base) var(--ease-out);
-}
-
-.image-list-enter-active {
-  animation: scale-in var(--duration-base) var(--ease-bounce);
-}
-
-.image-list-leave-active {
-  position: absolute;
-  animation: scale-out var(--duration-fast) var(--ease-in);
 }
 </style>

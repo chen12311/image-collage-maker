@@ -90,6 +90,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import Icon from '@/components/Common/Icon.vue'
 import { LAYOUT_TEMPLATES } from '@/core/models'
@@ -97,8 +98,17 @@ import type { Cell } from '@/core/models'
 
 const store = useAppStore()
 
-/** 所有布局选项 */
-const layouts = LAYOUT_TEMPLATES
+/** 所有布局选项（按图片数量排序） */
+const layouts = computed(() => {
+  return [...LAYOUT_TEMPLATES].sort((a, b) => {
+    // 按图片数量从小到大排序
+    if (a.imageCount !== b.imageCount) {
+      return a.imageCount - b.imageCount
+    }
+    // 图片数量相同时保持原有顺序（通过索引判断）
+    return LAYOUT_TEMPLATES.indexOf(a) - LAYOUT_TEMPLATES.indexOf(b)
+  })
+})
 
 /** 选择布局 */
 function selectLayout(id: string) {

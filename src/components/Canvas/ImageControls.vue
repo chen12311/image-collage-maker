@@ -1,26 +1,26 @@
 <template>
   <div class="image-controls" :style="controlsStyle">
     <div class="controls-toolbar">
-      <Tooltip content="水平翻转" placement="top">
-        <button class="control-btn" @click="$emit('flip-horizontal')" aria-label="水平翻转">
+      <Tooltip :content="$t('interaction.flipHorizontalTooltip')" placement="top">
+        <button class="control-btn" @click="$emit('flip-horizontal')" :aria-label="$t('interaction.flipHorizontalTooltip')">
           <Icon name="flip-horizontal" size="sm" />
         </button>
       </Tooltip>
       
-      <Tooltip content="垂直翻转" placement="top">
-        <button class="control-btn" @click="$emit('flip-vertical')" aria-label="垂直翻转">
+      <Tooltip :content="$t('interaction.flipVerticalTooltip')" placement="top">
+        <button class="control-btn" @click="$emit('flip-vertical')" :aria-label="$t('interaction.flipVerticalTooltip')">
           <Icon name="flip-vertical" size="sm" />
         </button>
       </Tooltip>
       
-      <Tooltip content="旋转 90°" placement="top">
-        <button class="control-btn" @click="$emit('rotate')" aria-label="旋转">
+      <Tooltip :content="$t('interaction.rotateTooltip')" placement="top">
+        <button class="control-btn" @click="$emit('rotate')" :aria-label="$t('interaction.rotateTooltip')">
           <Icon name="rotate-cw" size="sm" />
         </button>
       </Tooltip>
       
-      <Tooltip content="删除图片" placement="top">
-        <button class="control-btn control-btn-danger" @click="$emit('delete')" aria-label="删除">
+      <Tooltip :content="$t('interaction.deleteTooltip')" placement="top">
+        <button class="control-btn control-btn-danger" @click="$emit('delete')" :aria-label="$t('interaction.deleteTooltip')">
           <Icon name="trash" size="sm" />
         </button>
       </Tooltip>
@@ -32,6 +32,9 @@
 import { computed } from 'vue'
 import Icon from '@/components/Common/Icon.vue'
 import Tooltip from '@/components/Common/Tooltip.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 /** 组件属性 */
 interface Props {

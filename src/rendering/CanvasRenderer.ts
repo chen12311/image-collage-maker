@@ -6,6 +6,7 @@
 
 import type { ImageElement, TextElement, CanvasState } from '@/core/models'
 import type { LayoutResult, ComputedCell } from '@/layout/LayoutEngine'
+import { i18n } from '@/i18n'
 
 /**
  * 渲染选项
@@ -109,7 +110,7 @@ export class CanvasRenderer {
         // 重置滤镜
         ctx.filter = 'none'
       } catch (error) {
-        console.error('背景图片加载失败:', error)
+        console.error('Background image loading failed:', error)
         // 降级：绘制纯色背景
         ctx.globalAlpha = background.opacity / 100
         ctx.fillStyle = background.color
@@ -337,10 +338,10 @@ export class CanvasRenderer {
     ctx.font = '14px Arial'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(`位置 ${index + 1}`, x + width / 2, y + height / 2 - 10)
+    ctx.fillText(i18n.global.t('canvas.emptySlotPosition', { position: index + 1 }), x + width / 2, y + height / 2 - 10)
     
     ctx.font = '12px Arial'
-    ctx.fillText('点击上传图片', x + width / 2, y + height / 2 + 10)
+    ctx.fillText(i18n.global.t('canvas.emptySlotHint'), x + width / 2, y + height / 2 + 10)
     
     ctx.restore()
   }

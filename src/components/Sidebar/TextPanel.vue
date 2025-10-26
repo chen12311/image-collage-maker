@@ -39,7 +39,7 @@
           v-model="fontFamily"
           :options="fontFamilies"
           size="md"
-          :placeholder="checkingFonts ? '检测字体中...' : '选择字体'"
+          :placeholder="checkingFonts ? t('fonts.detectingFonts') : t('fonts.selectFont')"
           searchable
         />
       </div>
@@ -143,47 +143,47 @@ const store = useAppStore()
 const { t } = useI18n()
 const colorInput = ref<HTMLInputElement>()
 
-/** 预设字体列表（30+ 常用字体） */
+/** 预设字体列表（30+ 常用字体）- i18n key映射 */
 const PRESET_FONTS = [
   // === 中文优先字体 ===
-  { label: '苹方（推荐）', value: 'PingFang SC', category: 'chinese' },
-  { label: '苹方 HK', value: 'PingFang HK', category: 'chinese' },
-  { label: '苹方 TC', value: 'PingFang TC', category: 'chinese' },
-  { label: '微软雅黑', value: 'Microsoft YaHei', category: 'chinese' },
-  { label: '微软正黑体', value: 'Microsoft JhengHei', category: 'chinese' },
-  { label: '黑体', value: 'SimHei', category: 'chinese' },
-  { label: '宋体', value: 'SimSun', category: 'chinese' },
-  { label: '新宋体', value: 'NSimSun', category: 'chinese' },
-  { label: '楷体', value: 'KaiTi', category: 'chinese' },
-  { label: '仿宋', value: 'FangSong', category: 'chinese' },
-  { label: '华文黑体', value: 'STHeiti', category: 'chinese' },
-  { label: '华文宋体', value: 'STSong', category: 'chinese' },
-  { label: '华文楷体', value: 'STKaiti', category: 'chinese' },
+  { i18nKey: 'pingfangSC', value: 'PingFang SC', category: 'chinese', recommended: true },
+  { i18nKey: 'pingfangHK', value: 'PingFang HK', category: 'chinese' },
+  { i18nKey: 'pingfangTC', value: 'PingFang TC', category: 'chinese' },
+  { i18nKey: 'microsoftYahei', value: 'Microsoft YaHei', category: 'chinese' },
+  { i18nKey: 'microsoftJhengHei', value: 'Microsoft JhengHei', category: 'chinese' },
+  { i18nKey: 'simhei', value: 'SimHei', category: 'chinese' },
+  { i18nKey: 'simsun', value: 'SimSun', category: 'chinese' },
+  { i18nKey: 'nsimsun', value: 'NSimSun', category: 'chinese' },
+  { i18nKey: 'kaiti', value: 'KaiTi', category: 'chinese' },
+  { i18nKey: 'fangsong', value: 'FangSong', category: 'chinese' },
+  { i18nKey: 'stheiti', value: 'STHeiti', category: 'chinese' },
+  { i18nKey: 'stsong', value: 'STSong', category: 'chinese' },
+  { i18nKey: 'stkaiti', value: 'STKaiti', category: 'chinese' },
   
   // === 英文无衬线字体 ===
-  { label: 'Arial', value: 'Arial', category: 'sans-serif' },
-  { label: 'Helvetica', value: 'Helvetica', category: 'sans-serif' },
-  { label: 'Helvetica Neue', value: 'Helvetica Neue', category: 'sans-serif' },
-  { label: 'Verdana', value: 'Verdana', category: 'sans-serif' },
-  { label: 'Tahoma', value: 'Tahoma', category: 'sans-serif' },
-  { label: 'Trebuchet MS', value: 'Trebuchet MS', category: 'sans-serif' },
-  { label: 'Segoe UI', value: 'Segoe UI', category: 'sans-serif' },
+  { i18nKey: 'arial', value: 'Arial', category: 'sans-serif' },
+  { i18nKey: 'helvetica', value: 'Helvetica', category: 'sans-serif' },
+  { i18nKey: 'helveticaNeue', value: 'Helvetica Neue', category: 'sans-serif' },
+  { i18nKey: 'verdana', value: 'Verdana', category: 'sans-serif' },
+  { i18nKey: 'tahoma', value: 'Tahoma', category: 'sans-serif' },
+  { i18nKey: 'trebuchetMS', value: 'Trebuchet MS', category: 'sans-serif' },
+  { i18nKey: 'segoeUI', value: 'Segoe UI', category: 'sans-serif' },
   
   // === 英文衬线字体 ===
-  { label: 'Times New Roman', value: 'Times New Roman', category: 'serif' },
-  { label: 'Georgia', value: 'Georgia', category: 'serif' },
-  { label: 'Palatino', value: 'Palatino', category: 'serif' },
-  { label: 'Garamond', value: 'Garamond', category: 'serif' },
+  { i18nKey: 'timesNewRoman', value: 'Times New Roman', category: 'serif' },
+  { i18nKey: 'georgia', value: 'Georgia', category: 'serif' },
+  { i18nKey: 'palatino', value: 'Palatino', category: 'serif' },
+  { i18nKey: 'garamond', value: 'Garamond', category: 'serif' },
   
   // === 等宽字体 ===
-  { label: 'Courier New', value: 'Courier New', category: 'monospace' },
-  { label: 'Consolas', value: 'Consolas', category: 'monospace' },
-  { label: 'Monaco', value: 'Monaco', category: 'monospace' },
+  { i18nKey: 'courierNew', value: 'Courier New', category: 'monospace' },
+  { i18nKey: 'consolas', value: 'Consolas', category: 'monospace' },
+  { i18nKey: 'monaco', value: 'Monaco', category: 'monospace' },
   
   // === 艺术/创意字体 ===
-  { label: 'Comic Sans MS', value: 'Comic Sans MS', category: 'cursive' },
-  { label: 'Impact', value: 'Impact', category: 'display' },
-  { label: 'Brush Script MT', value: 'Brush Script MT', category: 'cursive' }
+  { i18nKey: 'comicSansMS', value: 'Comic Sans MS', category: 'cursive' },
+  { i18nKey: 'impact', value: 'Impact', category: 'display' },
+  { i18nKey: 'brushScriptMT', value: 'Brush Script MT', category: 'cursive' }
 ]
 
 /** 文字内容 */
@@ -227,8 +227,11 @@ const fontFamilies = computed<SelectOption[]>(() => {
     
     const fullFontFamily = `${font.value}${fallback}`
     
+    // 使用 i18n 获取标签，如果是推荐字体则添加推荐标记
+    const label = t(`fonts.${font.i18nKey}`) + (font.recommended ? t('fonts.recommended') : '')
+    
     return {
-      label: font.label,
+      label,
       value: fullFontFamily,
       disabled: !isAvailable,  // 不可用字体禁用
       fontFamily: fullFontFamily  // 用于预览字体效果

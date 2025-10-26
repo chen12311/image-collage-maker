@@ -268,6 +268,76 @@ describe('CanvasState - cloneCanvasState()', () => {
     expect(state.texts[0].position.x).toBe(100)
     expect(state.texts[0].style.fontSize).toBe(24)
   })
+
+  it('应该深度克隆图片的 transform 对象', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const state: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [createTestImageElement('img-1')]
+    }
+    
+    const cloned = cloneCanvasState(state)
+    
+    // transform 对象应该是新的
+    expect(cloned.images[0]).not.toBe(state.images[0])
+    expect(cloned.images[0].transform).not.toBe(state.images[0].transform)
+    
+    // 修改克隆体的 transform
+    cloned.images[0].transform.flipH = true
+    cloned.images[0].transform.flipV = true
+    cloned.images[0].transform.rotation = 90
+    
+    // 原对象的 transform 不应改变
+    expect(state.images[0].transform.flipH).toBe(false)
+    expect(state.images[0].transform.flipV).toBe(false)
+    expect(state.images[0].transform.rotation).toBe(0)
+  })
+
+  it('应该深度克隆背景图片的 effects 对象', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const state: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      background: {
+        type: 'image',
+        color: '#ffffff',
+        opacity: 100,
+        image: {
+          url: 'data:image/png;base64,test',
+          effects: {
+            opacity: 80,
+            blur: 5,
+            brightness: 110,
+            contrast: 120
+          }
+        }
+      }
+    }
+    
+    const cloned = cloneCanvasState(state)
+    
+    // background.image 和 effects 应该是新对象
+    expect(cloned.background).not.toBe(state.background)
+    expect(cloned.background.image).not.toBe(state.background.image)
+    expect(cloned.background.image?.effects).not.toBe(state.background.image?.effects)
+    
+    // 修改克隆体的 effects
+    cloned.background.image!.effects.opacity = 50
+    cloned.background.image!.effects.blur = 10
+    
+    // 原对象的 effects 不应改变
+    expect(state.background.image?.effects.opacity).toBe(80)
+    expect(state.background.image?.effects.blur).toBe(5)
+  })
+
+  it('应该正确处理没有背景图片的情况', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const state = createEmptyCanvasState(layout)
+    
+    const cloned = cloneCanvasState(state)
+    
+    expect(cloned.background.image).toBeUndefined()
+    expect(state.background.image).toBeUndefined()
+  })
 })
 
 describe('CanvasState - isStateEqual()', () => {
@@ -404,6 +474,130 @@ describe('CanvasState - isStateEqual()', () => {
     const state2 = { ...baseState, timestamp: baseState.timestamp + 1000 }
     
     expect(isStateEqual(state1, state2)).toBe(true)
+  })
+
+  it('图片 transform.flipH 变化应该返回 false', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const img1 = createTestImageElement('img-1')
+    const img2 = createTestImageElement('img-1')
+    img2.transform.flipH = true
+    
+    const state1: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img1]
+    }
+    const state2: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img2]
+    }
+    
+    expect(isStateEqual(state1, state2)).toBe(false)
+  })
+
+  it('图片 transform.flipV 变化应该返回 false', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const img1 = createTestImageElement('img-1')
+    const img2 = createTestImageElement('img-1')
+    img2.transform.flipV = true
+    
+    const state1: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img1]
+    }
+    const state2: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img2]
+    }
+    
+    expect(isStateEqual(state1, state2)).toBe(false)
+  })
+
+  it('图片 transform.rotation 变化应该返回 false', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const img1 = createTestImageElement('img-1')
+    const img2 = createTestImageElement('img-1')
+    img2.transform.rotation = 90
+    
+    const state1: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img1]
+    }
+    const state2: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img2]
+    }
+    
+    expect(isStateEqual(state1, state2)).toBe(false)
+  })
+
+  it('图片 index 变化应该返回 false', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const img1 = createTestImageElement('img-1')
+    const img2 = createTestImageElement('img-1')
+    img1.index = 0
+    img2.index = 1
+    
+    const state1: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img1]
+    }
+    const state2: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img2]
+    }
+    
+    expect(isStateEqual(state1, state2)).toBe(false)
+  })
+
+  it('图片顺序变化应该返回 false', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const img1 = createTestImageElement('img-1')
+    const img2 = createTestImageElement('img-2')
+    img1.index = 0
+    img2.index = 1
+    
+    const state1: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img1, img2]
+    }
+    
+    // 交换顺序并更新索引
+    const img1Swapped = { ...img1, index: 1 }
+    const img2Swapped = { ...img2, index: 0 }
+    const state2: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [img2Swapped, img1Swapped]
+    }
+    
+    expect(isStateEqual(state1, state2)).toBe(false)
+  })
+
+  it('图片数量变化（增加）应该返回 false', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const state1: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [createTestImageElement('img-1')]
+    }
+    const state2: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [createTestImageElement('img-1'), createTestImageElement('img-2')]
+    }
+    
+    expect(isStateEqual(state1, state2)).toBe(false)
+  })
+
+  it('图片数量变化（删除）应该返回 false', () => {
+    const layout = createLayoutConfig('grid-2x1-h')
+    const state1: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [createTestImageElement('img-1'), createTestImageElement('img-2')]
+    }
+    const state2: CanvasState = {
+      ...createEmptyCanvasState(layout),
+      images: [createTestImageElement('img-1')]
+    }
+    
+    expect(isStateEqual(state1, state2)).toBe(false)
   })
 })
 

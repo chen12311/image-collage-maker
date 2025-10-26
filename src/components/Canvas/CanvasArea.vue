@@ -94,7 +94,7 @@
         <div class="toolbar-divider"></div>
         
         <!-- 导出格式 -->
-        <label class="toolbar-label">导出格式:</label>
+        <label class="toolbar-label">{{ $t('canvas.exportFormatLabel') }}</label>
         <div class="format-selector">
           <button
             v-for="fmt in ['png', 'jpeg', 'webp']"
@@ -134,7 +134,7 @@
             :loading="isExporting"
             @click="exportImage"
           >
-            导出图片
+            {{ $t('canvas.exportButton') }}
           </Button>
         </Tooltip>
       </div>
@@ -252,7 +252,7 @@ async function exportImage() {
     const ext = store.exportFormat
     
     // 生成文件名
-    const filename = `拼接图片_${store.canvasWidth}x${store.canvasHeight}_${Date.now()}.${ext}`
+    const filename = `${t('canvas.fileNamePrefix')}_${store.canvasWidth}x${store.canvasHeight}_${Date.now()}.${ext}`
     
     // 导出
     const link = document.createElement('a')
@@ -260,10 +260,10 @@ async function exportImage() {
     link.href = canvas.toDataURL(format, quality)
     link.click()
     
-    toast.success(`图片已导出为 ${ext.toUpperCase()} 格式！`)
+    toast.success(t('canvas.exportSuccessFormat', { format: ext.toUpperCase() }))
   } catch (error) {
-    console.error('导出失败:', error)
-    toast.error('图片导出失败，请重试')
+    console.error('Export failed:', error)
+    toast.error(t('canvas.exportError'))
   } finally {
     isExporting.value = false
   }
@@ -313,7 +313,7 @@ async function handleCanvasDrop(e: DragEvent) {
     const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
     
     if (imageFiles.length === 0) {
-      toast.warning('请拖拽图片文件')
+      toast.warning(t('canvas.dragImageFiles'))
       return
     }
     
@@ -321,10 +321,10 @@ async function handleCanvasDrop(e: DragEvent) {
     
     // 添加到末尾
     store.addImages(imageElements)
-    toast.success(`成功添加 ${imageElements.length} 张图片`)
+    toast.success(t('canvas.uploadSuccess', { count: imageElements.length }))
   } catch (error) {
-    console.error('图片加载失败:', error)
-    toast.error('部分图片加载失败，请重试')
+    console.error('Image loading failed:', error)
+    toast.error(t('canvas.uploadError'))
   }
 }
 

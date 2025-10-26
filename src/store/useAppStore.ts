@@ -99,6 +99,9 @@ export const useAppStore = defineStore('app', () => {
   /** 历史管理器实例 */
   const historyManager = createHistoryManager()
   
+  /** 历史状态版本号（用于触发响应式更新） */
+  const historyVersion = ref(0)
+  
   // ============================================================================
   // 计算属性
   // ============================================================================
@@ -163,10 +166,18 @@ export const useAppStore = defineStore('app', () => {
   const canvasScalePercent = computed(() => Math.round(canvasScale.value * 100))
   
   /** 是否可以撤销 */
-  const canUndo = computed(() => historyManager.canUndo)
+  const canUndo = computed(() => {
+    // 依赖 historyVersion 以确保响应式更新
+    historyVersion.value
+    return historyManager.canUndo
+  })
   
   /** 是否可以重做 */
-  const canRedo = computed(() => historyManager.canRedo)
+  const canRedo = computed(() => {
+    // 依赖 historyVersion 以确保响应式更新
+    historyVersion.value
+    return historyManager.canRedo
+  })
   
   // ============================================================================
   // 布局操作
@@ -421,22 +432,44 @@ export const useAppStore = defineStore('app', () => {
   
   /**
    * 在指定位置插入图片
-   * 修复：先清理 null 值，确保索引连续
+   * 修复：不清理 null 值，支持稀疏数组，确保图片被放置到正确的单元格位置
    */
   function insertImagesAt(index: number, newImages: ImageElement[]) {
-    // 先清理 null 值，保持数组紧凑
-    cleanupImages()
+    // 确保索引有效（不能为负数）
+    const targetIndex = Math.max(0, index)
     
-    // 确保索引有效（0 到数组长度之间）
-    const targetIndex = Math.max(0, Math.min(index, images.value.length))
+    // 确保数组长度足够（用 null 填充空位）
+    while (images.value.length < targetIndex) {
+      images.value.push(null as any)
+    }
     
-    // 在目标位置插入图片
-    images.value.splice(targetIndex, 0, ...newImages)
-    
-    // 重新索引所有图片
-    images.value.forEach((img, i) => {
-      img.index = i
-    })
+    // 在指定位置设置图片（而不是插入）
+    // 如果目标位置是空的（null/undefined），直接设置
+    // 如果目标位置有图片，则插入（后续图片后移）
+    if (targetIndex < images.value.length && (images.value[targetIndex] === null || images.value[targetIndex] === undefined)) {
+      // 目标位置为空，直接设置
+      // 使用 splice 来确保触发响应式更新
+      newImages.forEach((img, offset) => {
+        const pos = targetIndex + offset
+        // 确保位置存在
+        while (images.value.length <= pos) {
+          images.value.push(null as any)
+        }
+        // 使用 splice 替换该位置，确保响应式更新
+        images.value.splice(pos, 1, img)
+        img.index = pos
+      })
+    } else {
+      // 目标位置有图片，在该位置插入（后续图片后移）
+      images.value.splice(targetIndex, 0, ...newImages)
+      
+      // 重新索引所有图片
+      images.value.forEach((img, i) => {
+        if (img && img !== null) {
+          img.index = i
+        }
+      })
+    }
   }
   
   /**
@@ -658,7 +691,8 @@ export const useAppStore = defineStore('app', () => {
     const state = historyManager.undo()
     if (state) {
       restoreState(state)
-      toast.info('已撤销')
+      historyVersion.value++ // 触发响应式更新
+      toast.info(i18n.global.t('toast.undone'))
     }
   }
   
@@ -669,7 +703,8 @@ export const useAppStore = defineStore('app', () => {
     const state = historyManager.redo()
     if (state) {
       restoreState(state)
-      toast.info('已重做')
+      historyVersion.value++ // 触发响应式更新
+      toast.info(i18n.global.t('toast.redone'))
     }
   }
   
@@ -684,12 +719,14 @@ export const useAppStore = defineStore('app', () => {
     currentState,
     (newState) => {
       historyManager.push(newState)
+      historyVersion.value++ // 触发响应式更新
     },
     { deep: true }
   )
   
   // 记录初始状态
   historyManager.push(currentState.value)
+  historyVersion.value++ // 触发响应式更新
   
   // ============================================================================
   // 返回Store API

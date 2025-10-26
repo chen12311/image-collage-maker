@@ -11,7 +11,11 @@ export default {
     upload: 'Upload',
     add: 'Add',
     remove: 'Remove',
-    reset: 'Reset'
+    reset: 'Reset',
+    // Common components
+    selectPlaceholder: 'Please select',
+    searchPlaceholder: 'Search...',
+    bgImageAlt: 'Background image'
   },
   
   app: {
@@ -111,7 +115,87 @@ export default {
     preset1080x1080: '1080 × 1080 (Square)',
     preset1080x1920: '1080 × 1920 (Portrait)',
     preset1920x1080: '1920 × 1080 (Landscape)',
-    presetCustom: 'Custom'
+    presetCustom: 'Custom',
+    // Export related
+    exportFormatLabel: 'Export Format:',
+    exportButton: 'Export Image',
+    fileNamePrefix: 'stitched-image',
+    exportSuccessFormat: 'Image exported as {format} format!',
+    exportError: 'Image export failed, please retry',
+    // Drag and drop upload
+    uploadSuccess: 'Successfully added {count} images',
+    uploadError: 'Some images failed to load, please retry',
+    dragImageFiles: 'Please drag image files',
+    // Empty slot hints
+    emptySlotPosition: 'Position {position}',
+    emptySlotHint: 'Click to upload'
+  },
+  
+  interaction: {
+    // Image operations
+    imageFlippedH: 'Image flipped horizontally',
+    imageFlippedV: 'Image flipped vertically',
+    imageRotated: 'Image rotated 90°',
+    imageDeleted: 'Deleted {fileName}',
+    imagesMoved: 'Images swapped',
+    imageMoved: 'Image moved',
+    // Image control button tooltips
+    flipHorizontalTooltip: 'Flip Horizontal',
+    flipVerticalTooltip: 'Flip Vertical',
+    rotateTooltip: 'Rotate 90°',
+    deleteTooltip: 'Delete Image',
+    // Click to upload
+    clickOrDragAdd: 'Click or drag to add images',
+    releaseToUpload: 'Release to upload',
+    pleaseSelectImage: 'Please select image files',
+    // Insert images
+    insertedAt: 'Inserted {count} images at position {position}',
+    addedImages: 'Successfully uploaded {count} images',
+    addSuccess: 'Successfully added {count} images',
+    addError: 'Some images failed to load, please retry',
+    dragImagesOnly: 'Please drag image files'
+  },
+  
+  fonts: {
+    // Font selection
+    detectingFonts: 'Detecting fonts...',
+    selectFont: 'Select Font',
+    recommended: ' (Recommended)',
+    // Chinese fonts
+    pingfangSC: 'PingFang SC',
+    pingfangHK: 'PingFang HK',
+    pingfangTC: 'PingFang TC',
+    microsoftYahei: 'Microsoft YaHei',
+    microsoftJhengHei: 'Microsoft JhengHei',
+    simhei: 'SimHei',
+    simsun: 'SimSun',
+    nsimsun: 'NSimSun',
+    kaiti: 'KaiTi',
+    fangsong: 'FangSong',
+    stheiti: 'STHeiti',
+    stsong: 'STSong',
+    stkaiti: 'STKaiti',
+    // Sans-serif fonts
+    arial: 'Arial',
+    helvetica: 'Helvetica',
+    helveticaNeue: 'Helvetica Neue',
+    verdana: 'Verdana',
+    tahoma: 'Tahoma',
+    trebuchetMS: 'Trebuchet MS',
+    segoeUI: 'Segoe UI',
+    // Serif fonts
+    timesNewRoman: 'Times New Roman',
+    georgia: 'Georgia',
+    palatino: 'Palatino',
+    garamond: 'Garamond',
+    // Monospace fonts
+    courierNew: 'Courier New',
+    consolas: 'Consolas',
+    monaco: 'Monaco',
+    // Artistic/Creative fonts
+    comicSansMS: 'Comic Sans MS',
+    impact: 'Impact',
+    brushScriptMT: 'Brush Script MT'
   },
   
   shortcuts: {

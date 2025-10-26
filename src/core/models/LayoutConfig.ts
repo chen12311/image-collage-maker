@@ -55,8 +55,17 @@ export interface LayoutConfig {
  */
 export const LAYOUT_TEMPLATES: readonly LayoutTemplate[] = [
   // ============================================================================
-  // 基础网格类（12种）
+  // 基础网格类（13种）
   // ============================================================================
+  {
+    id: 'grid-1x1',
+    name: '单图',
+    cells: [
+      [0, 0, 1, 1]
+    ],
+    imageCount: 1,
+    tags: ['1图', '单图', '基础']
+  },
   {
     id: 'grid-2x1-h',
     name: '2图横排',
@@ -1849,7 +1858,7 @@ export function createLayoutConfig(
   }
   
   if (!template) {
-    console.warn(`未找到布局模板: ${layoutId}，使用默认布局`)
+    console.warn(`Layout template not found: ${layoutId}, using default layout`)
     return DEFAULT_LAYOUT_CONFIG
   }
   

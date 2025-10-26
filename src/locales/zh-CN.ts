@@ -11,7 +11,11 @@ export default {
     upload: '上传',
     add: '添加',
     remove: '删除',
-    reset: '重置'
+    reset: '重置',
+    // 通用组件
+    selectPlaceholder: '请选择',
+    searchPlaceholder: '搜索...',
+    bgImageAlt: '背景图片'
   },
   
   app: {
@@ -111,7 +115,87 @@ export default {
     preset1080x1080: '1080 × 1080 (正方形)',
     preset1080x1920: '1080 × 1920 (竖屏)',
     preset1920x1080: '1920 × 1080 (横屏)',
-    presetCustom: '自定义'
+    presetCustom: '自定义',
+    // 导出相关
+    exportFormatLabel: '导出格式:',
+    exportButton: '导出图片',
+    fileNamePrefix: '拼接图片',
+    exportSuccessFormat: '图片已导出为 {format} 格式！',
+    exportError: '图片导出失败，请重试',
+    // 拖拽上传相关
+    uploadSuccess: '成功添加 {count} 张图片',
+    uploadError: '部分图片加载失败，请重试',
+    dragImageFiles: '请拖拽图片文件',
+    // 空白位置提示
+    emptySlotPosition: '位置 {position}',
+    emptySlotHint: '点击上传图片'
+  },
+  
+  interaction: {
+    // 图片操作
+    imageFlippedH: '图片已水平翻转',
+    imageFlippedV: '图片已垂直翻转',
+    imageRotated: '图片已旋转 90°',
+    imageDeleted: '已删除 {fileName}',
+    imagesMoved: '图片位置已交换',
+    imageMoved: '图片已移动',
+    // 图片控制按钮提示
+    flipHorizontalTooltip: '水平翻转',
+    flipVerticalTooltip: '垂直翻转',
+    rotateTooltip: '旋转 90°',
+    deleteTooltip: '删除图片',
+    // 点击上传
+    clickOrDragAdd: '点击或拖拽添加图片',
+    releaseToUpload: '松开鼠标上传',
+    pleaseSelectImage: '请选择图片文件',
+    // 插入图片
+    insertedAt: '已在位置 {position} 插入 {count} 张图片',
+    addedImages: '成功上传 {count} 张图片',
+    addSuccess: '成功添加 {count} 张图片',
+    addError: '部分图片加载失败，请重试',
+    dragImagesOnly: '请拖拽图片文件'
+  },
+  
+  fonts: {
+    // 字体选择
+    detectingFonts: '检测字体中...',
+    selectFont: '选择字体',
+    recommended: '（推荐）',
+    // 中文字体
+    pingfangSC: '苹方',
+    pingfangHK: '苹方 HK',
+    pingfangTC: '苹方 TC',
+    microsoftYahei: '微软雅黑',
+    microsoftJhengHei: '微软正黑体',
+    simhei: '黑体',
+    simsun: '宋体',
+    nsimsun: '新宋体',
+    kaiti: '楷体',
+    fangsong: '仿宋',
+    stheiti: '华文黑体',
+    stsong: '华文宋体',
+    stkaiti: '华文楷体',
+    // 英文无衬线字体
+    arial: 'Arial',
+    helvetica: 'Helvetica',
+    helveticaNeue: 'Helvetica Neue',
+    verdana: 'Verdana',
+    tahoma: 'Tahoma',
+    trebuchetMS: 'Trebuchet MS',
+    segoeUI: 'Segoe UI',
+    // 英文衬线字体
+    timesNewRoman: 'Times New Roman',
+    georgia: 'Georgia',
+    palatino: 'Palatino',
+    garamond: 'Garamond',
+    // 等宽字体
+    courierNew: 'Courier New',
+    consolas: 'Consolas',
+    monaco: 'Monaco',
+    // 艺术/创意字体
+    comicSansMS: 'Comic Sans MS',
+    impact: 'Impact',
+    brushScriptMT: 'Brush Script MT'
   },
   
   shortcuts: {

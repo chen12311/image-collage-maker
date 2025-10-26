@@ -147,7 +147,7 @@ async function handleFiles(files: File[]) {
     store.addImages(imageElements)
     toast.success(t('toast.uploadSuccess', { count: imageElements.length }))
   } catch (error) {
-    console.error('图片加载失败:', error)
+    console.error('Image loading failed:', error)
     toast.error(t('toast.uploadError'))
   }
 }

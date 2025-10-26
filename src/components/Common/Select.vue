@@ -13,7 +13,7 @@
       aria-haspopup="listbox"
       :aria-expanded="isOpen"
     >
-      <span class="select-value">{{ selectedLabel || placeholder }}</span>
+      <span class="select-value">{{ selectedLabel || actualPlaceholder }}</span>
       <Icon name="chevron-down" size="sm" class="select-arrow" />
     </button>
     
@@ -30,7 +30,7 @@
             v-model="searchQuery"
             type="text"
             class="select-search-input"
-            placeholder="搜索..."
+            :placeholder="$t('common.searchPlaceholder')"
             @click.stop
           >
           <Icon name="search" size="sm" class="select-search-icon" />
@@ -80,6 +80,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import Icon from './Icon.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 /** 选项类型 */
 export interface SelectOption {
@@ -106,7 +109,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: '请选择',
   disabled: false,
   size: 'md',
   searchable: false
@@ -122,6 +124,9 @@ const isOpen = ref(false)
 const highlightedIndex = ref(-1)
 const searchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement>()
+
+/** 实际使用的 placeholder（带默认值） */
+const actualPlaceholder = computed(() => props.placeholder || t('common.selectPlaceholder'))
 
 /** 尺寸类名 */
 const sizeClass = computed(() => `select-${props.size}`)

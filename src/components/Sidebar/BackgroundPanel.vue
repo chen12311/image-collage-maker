@@ -121,7 +121,7 @@
         <div v-else class="control-group">
           <label class="control-label">{{ $t('sidebar.background.bgImage') }}</label>
           <div class="image-preview-container">
-            <img :src="store.bgImageUrl" alt="背景图片" class="image-preview">
+            <img :src="store.bgImageUrl" :alt="$t('common.bgImageAlt')" class="image-preview">
             <button class="image-remove" @click="removeBgImage">
               <Icon name="trash" size="sm" />
             </button>
@@ -308,7 +308,7 @@ async function handleFile(file: File) {
     }
     reader.readAsDataURL(file)
   } catch (error) {
-    console.error('图片处理失败:', error)
+    console.error('Image processing failed:', error)
     toast.error(t('toast.bgImageProcessError'))
   }
 }

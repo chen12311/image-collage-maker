@@ -157,10 +157,19 @@ export function createEmptyCanvasState(layout: LayoutConfig): CanvasState {
 export function cloneCanvasState(state: CanvasState): CanvasState {
   return {
     layout: { ...state.layout },
-    images: [...state.images],
+    images: state.images.map(img => img && img !== null ? {
+      ...img,
+      transform: { ...img.transform }
+    } : img),
     texts: state.texts.map(t => ({ ...t, position: { ...t.position }, style: { ...t.style } })),
     canvasSize: { ...state.canvasSize },
-    background: { ...state.background },
+    background: {
+      ...state.background,
+      image: state.background.image ? {
+        ...state.background.image,
+        effects: { ...state.background.image.effects }
+      } : undefined
+    },
     opacity: { ...state.opacity },
     timestamp: Date.now()
   }
@@ -172,7 +181,15 @@ export function cloneCanvasState(state: CanvasState): CanvasState {
 export function isStateEqual(state1: CanvasState, state2: CanvasState): boolean {
   return (
     JSON.stringify(state1.layout) === JSON.stringify(state2.layout) &&
-    JSON.stringify(state1.images.filter(i => i && i !== null).map(i => i.id)) === JSON.stringify(state2.images.filter(i => i && i !== null).map(i => i.id)) &&
+    JSON.stringify(state1.images.filter(i => i && i !== null).map(i => ({
+      id: i.id,
+      index: i.index,
+      transform: i.transform
+    }))) === JSON.stringify(state2.images.filter(i => i && i !== null).map(i => ({
+      id: i.id,
+      index: i.index,
+      transform: i.transform
+    }))) &&
     JSON.stringify(state1.texts) === JSON.stringify(state2.texts) &&
     JSON.stringify(state1.canvasSize) === JSON.stringify(state2.canvasSize) &&
     JSON.stringify(state1.background) === JSON.stringify(state2.background) &&

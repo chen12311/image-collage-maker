@@ -33,7 +33,7 @@
       >
         <div class="add-zone-content">
           <Icon :name="isAddZoneDragging ? 'download' : 'upload'" size="xl" class="add-zone-icon" />
-          <p class="add-zone-text">{{ isAddZoneDragging ? '松开鼠标上传' : '点击或拖拽添加图片' }}</p>
+          <p class="add-zone-text">{{ isAddZoneDragging ? t('interaction.releaseToUpload') : t('interaction.clickOrDragAdd') }}</p>
         </div>
       </div>
     </Transition>
@@ -84,8 +84,10 @@ import ImageControls from './ImageControls.vue'
 import Icon from '@/components/Common/Icon.vue'
 import { toast } from '@/composables/useToast'
 import { createImageElements } from '@/core/models'
+import { useI18n } from 'vue-i18n'
 
 const store = useAppStore()
+const { t } = useI18n()
 const layerRef = ref<HTMLDivElement>()
 const hoveredIndex = ref<number | null>(null)
 const fileInput = ref<HTMLInputElement>()
@@ -197,19 +199,19 @@ function handleControlsLeave() {
 /** 水平翻转 */
 function handleFlipHorizontal(id: string) {
   store.flipImageHorizontal(id)
-  toast.success('图片已水平翻转')
+  toast.success(t('interaction.imageFlippedH'))
 }
 
 /** 垂直翻转 */
 function handleFlipVertical(id: string) {
   store.flipImageVertical(id)
-  toast.success('图片已垂直翻转')
+  toast.success(t('interaction.imageFlippedV'))
 }
 
 /** 旋转 */
 function handleRotate(id: string) {
   store.rotateImage(id)
-  toast.success('图片已旋转 90°')
+  toast.success(t('interaction.imageRotated'))
 }
 
 /** 删除 */
@@ -217,7 +219,7 @@ function handleDelete(id: string) {
   const image = images.value.find(img => img && img !== null && img.id === id)
   if (image) {
     store.removeImage(id)
-    toast.success(`已删除 ${image.fileName}`)
+    toast.success(t('interaction.imageDeleted', { fileName: image.fileName }))
     hoveredIndex.value = null
   }
 }
@@ -243,7 +245,7 @@ async function handleFileChange(e: Event) {
     const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
     
     if (imageFiles.length === 0) {
-      toast.warning('请选择图片文件')
+      toast.warning(t('interaction.pleaseSelectImage'))
       return
     }
     
@@ -252,10 +254,10 @@ async function handleFileChange(e: Event) {
     // 在指定位置插入图片
     if (targetIndex.value >= 0) {
       store.insertImagesAt(targetIndex.value, imageElements)
-      toast.success(`已在位置 ${targetIndex.value + 1} 插入 ${imageElements.length} 张图片`)
+      toast.success(t('interaction.insertedAt', { position: targetIndex.value + 1, count: imageElements.length }))
     } else {
       store.addImages(imageElements)
-      toast.success(`成功上传 ${imageElements.length} 张图片`)
+      toast.success(t('interaction.addedImages', { count: imageElements.length }))
     }
     
     // 清空 input 和目标索引
@@ -264,8 +266,8 @@ async function handleFileChange(e: Event) {
     }
     targetIndex.value = -1
   } catch (error) {
-    console.error('图片加载失败:', error)
-    toast.error('部分图片加载失败，请重试')
+    console.error('Image loading failed:', error)
+    toast.error(t('interaction.addError'))
     targetIndex.value = -1
   }
 }
@@ -279,7 +281,7 @@ async function handleAddZoneFileChange(e: Event) {
     const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
     
     if (imageFiles.length === 0) {
-      toast.warning('请选择图片文件')
+      toast.warning(t('interaction.pleaseSelectImage'))
       return
     }
     
@@ -287,15 +289,15 @@ async function handleAddZoneFileChange(e: Event) {
     
     // 添加到末尾
     store.addImages(imageElements)
-    toast.success(`成功添加 ${imageElements.length} 张图片`)
+    toast.success(t('interaction.addSuccess', { count: imageElements.length }))
     
     // 清空 input
     if (addZoneFileInput.value) {
       addZoneFileInput.value.value = ''
     }
   } catch (error) {
-    console.error('图片加载失败:', error)
-    toast.error('部分图片加载失败，请重试')
+    console.error('Image loading failed:', error)
+    toast.error(t('interaction.addError'))
   }
 }
 
@@ -316,7 +318,7 @@ async function handleAddZoneDrop(e: DragEvent) {
     const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
     
     if (imageFiles.length === 0) {
-      toast.warning('请拖拽图片文件')
+      toast.warning(t('interaction.dragImagesOnly'))
       return
     }
     
@@ -324,10 +326,10 @@ async function handleAddZoneDrop(e: DragEvent) {
     
     // 添加到末尾
     store.addImages(imageElements)
-    toast.success(`成功添加 ${imageElements.length} 张图片`)
+    toast.success(t('interaction.addSuccess', { count: imageElements.length }))
   } catch (error) {
-    console.error('图片加载失败:', error)
-    toast.error('部分图片加载失败，请重试')
+    console.error('Image loading failed:', error)
+    toast.error(t('interaction.addError'))
   }
 }
 
@@ -354,6 +356,7 @@ function handleZoneDragLeave(index: number) {
 /** 空白单元格拖拽放置 */
 async function handleZoneDrop(index: number, e: DragEvent) {
   e.preventDefault()
+  e.stopPropagation() // 阻止事件冒泡到 CanvasArea，避免重复添加
   dragOverZoneIndex.value = null
   
   // 只处理空白单元格
@@ -368,7 +371,7 @@ async function handleZoneDrop(index: number, e: DragEvent) {
     const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
     
     if (imageFiles.length === 0) {
-      toast.warning('请拖拽图片文件')
+      toast.warning(t('interaction.dragImagesOnly'))
       return
     }
     
@@ -376,10 +379,10 @@ async function handleZoneDrop(index: number, e: DragEvent) {
     
     // 在指定位置插入图片
     store.insertImagesAt(index, imageElements)
-    toast.success(`已在位置 ${index + 1} 插入 ${imageElements.length} 张图片`)
+    toast.success(t('interaction.insertedAt', { position: index + 1, count: imageElements.length }))
   } catch (error) {
-    console.error('图片加载失败:', error)
-    toast.error('部分图片加载失败，请重试')
+    console.error('Image loading failed:', error)
+    toast.error(t('interaction.addError'))
   }
 }
 
@@ -446,11 +449,11 @@ function handleDragEnd(event: MouseEvent) {
       if (targetImage && targetImage !== null) {
         // 目标位置有图片，交换位置
         store.swapImages(draggingIndex.value, targetCellIndex)
-        toast.success('图片位置已交换')
+        toast.success(t('interaction.imagesMoved'))
       } else {
         // 目标位置为空，移动图片
         store.moveImage(draggingIndex.value, targetCellIndex)
-        toast.success('图片已移动')
+        toast.success(t('interaction.imageMoved'))
       }
     }
   }

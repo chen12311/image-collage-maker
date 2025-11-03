@@ -6,13 +6,13 @@
 jest.setTimeout(10000)
 
 // Mock Vue for component tests
-if (typeof global.Vue === 'undefined') {
-  global.Vue = {} as any
+if (typeof (global as any).Vue === 'undefined') {
+  (global as any).Vue = {} as any
 }
 
 // Mock VueCompilerDOM for @vue/test-utils
-if (typeof global.VueCompilerDOM === 'undefined') {
-  global.VueCompilerDOM = {
+if (typeof (global as any).VueCompilerDOM === 'undefined') {
+  (global as any).VueCompilerDOM = {
     compile: jest.fn(() => ({ code: '' })),
     parse: jest.fn(() => ({}))
   } as any
@@ -106,7 +106,7 @@ global.FileReader = class FileReader {
   onload: ((event: ProgressEvent) => void) | null = null
   onerror: ((event: ProgressEvent) => void) | null = null
   
-  readAsDataURL(blob: Blob) {
+  readAsDataURL(_blob: Blob) {
     setTimeout(() => {
       this.result = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
       if (this.onload) {

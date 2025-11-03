@@ -4,7 +4,7 @@
 
 import { LayoutEngine, computeLayout } from '@/layout/LayoutEngine'
 import { createLayoutConfig, getLayoutById } from '@/core/models'
-import type { LayoutConfig, Cell } from '@/core/models'
+import type { LayoutConfig } from '@/core/models'
 
 describe('LayoutEngine - 基础功能', () => {
   it('应该正确计算1x1布局', () => {

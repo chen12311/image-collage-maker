@@ -14,10 +14,12 @@ function createTestImage(width: number, height: number): ImageElement {
   return {
     id: `img-${width}x${height}`,
     fileName: 'test.jpg',
-    url: 'data:image/png;base64,test',
+    src: 'data:image/png;base64,test',
     image: new Image(),
     width,
     height,
+    fileSize: 1024,
+    timestamp: Date.now(),
     index: 0,
     transform: {
       rotation: 0,

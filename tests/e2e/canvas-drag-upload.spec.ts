@@ -14,26 +14,6 @@ test.describe('画布拖拽上传测试', () => {
     // 准备测试图片
     const testImagePath = path.join(__dirname, '../fixtures/images/test-image-100x100.png')
     
-    // 读取文件内容
-    const buffer = await page.evaluate(async (imagePath) => {
-      const response = await fetch(imagePath)
-      const blob = await response.blob()
-      return blob
-    }, `file://${testImagePath}`)
-    
-    // 创建 DataTransfer 对象
-    const dataTransfer = await page.evaluateHandle((filePath) => {
-      const dt = new DataTransfer()
-      // 创建一个 File 对象
-      return fetch(filePath)
-        .then(res => res.blob())
-        .then(blob => {
-          const file = new File([blob], 'test-image.png', { type: 'image/png' })
-          dt.items.add(file)
-          return dt
-        })
-    }, `file://${testImagePath}`)
-    
     // 等待画布区域加载
     const canvasContainer = page.locator('.canvas-container')
     await expect(canvasContainer).toBeVisible()

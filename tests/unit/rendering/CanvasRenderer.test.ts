@@ -21,10 +21,12 @@ function createTestImage(id: string): ImageElement {
   return {
     id,
     fileName: `${id}.jpg`,
-    url: 'data:image/png;base64,test',
+    src: 'data:image/png;base64,test',
     image: img,
     width: 100,
     height: 100,
+    fileSize: 1024,
+    timestamp: Date.now(),
     index: 0,
     transform: {
       rotation: 0,
@@ -48,7 +50,9 @@ function createTestText(content: string): TextElement {
       textAlign: 'left',
       textBaseline: 'top'
     },
-    visible: true
+    visible: true,
+    selected: false,
+    timestamp: Date.now()
   }
 }
 
@@ -269,7 +273,7 @@ describe('CanvasRenderer - 图片变换', () => {
     const image = {
       ...createTestImage('img1'),
       transform: {
-        rotation: 90,
+        rotation: 90 as 0 | 90 | 180 | 270,
         flipH: false,
         flipV: false
       }
@@ -293,7 +297,7 @@ describe('CanvasRenderer - 图片变换', () => {
     const image = {
       ...createTestImage('img1'),
       transform: {
-        rotation: 0,
+        rotation: 0 as 0 | 90 | 180 | 270,
         flipH: true,
         flipV: false
       }
@@ -317,7 +321,7 @@ describe('CanvasRenderer - 图片变换', () => {
     const image = {
       ...createTestImage('img1'),
       transform: {
-        rotation: 0,
+        rotation: 0 as 0 | 90 | 180 | 270,
         flipH: false,
         flipV: true
       }
@@ -340,7 +344,7 @@ describe('CanvasRenderer - 图片变换', () => {
     const image = {
       ...createTestImage('img1'),
       transform: {
-        rotation: 45,
+        rotation: 90 as 0 | 90 | 180 | 270,
         flipH: true,
         flipV: false
       }
@@ -440,7 +444,7 @@ describe('CanvasRenderer - 文字渲染', () => {
       style: {
         fontSize: 24,
         fontFamily: 'Helvetica',
-        fontWeight: 'bold',
+        fontWeight: 'bold' as 'bold' | 'normal',
         color: '#ff0000',
         textAlign: 'center' as const,
         textBaseline: 'middle' as const

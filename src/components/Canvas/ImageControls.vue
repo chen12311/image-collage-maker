@@ -32,9 +32,6 @@
 import { computed } from 'vue'
 import Icon from '@/components/Common/Icon.vue'
 import Tooltip from '@/components/Common/Tooltip.vue'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 /** 组件属性 */
 interface Props {

@@ -7,7 +7,7 @@
           <Icon name="menu" size="md" />
         </button>
         <h1 class="app-title">
-          <Icon name="image" size="lg" />
+          <img src="/logo.svg" alt="ImageBatch Logo" class="app-logo" />
           {{ $t('app.title') }}
         </h1>
       </div>
@@ -240,6 +240,12 @@ onUnmounted(() => {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-neutral-800);
+}
+
+.app-logo {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 .header-right {

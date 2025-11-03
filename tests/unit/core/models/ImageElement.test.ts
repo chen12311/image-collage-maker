@@ -12,13 +12,8 @@ import {
 import type { ImageElement } from '@/core/models/ImageElement'
 
 /** 创建测试用的File对象 */
-function createTestFile(name: string, size: number = 1024): File {
+function createTestFile(name: string, _size: number = 1024): File {
   return new File(['test content'], name, { type: 'image/jpeg' })
-}
-
-/** 等待异步操作 */
-function wait(ms: number = 0): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 describe('ImageElement - createImageElement()', () => {

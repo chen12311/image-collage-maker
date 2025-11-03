@@ -13,7 +13,7 @@ import {
   DEFAULT_OPACITY_CONFIG
 } from '@/core/models/CanvasState'
 import { createLayoutConfig } from '@/core/models/LayoutConfig'
-import type { CanvasState, CanvasSize, BackgroundConfig } from '@/core/models/CanvasState'
+import type { CanvasState } from '@/core/models/CanvasState'
 import type { ImageElement, TextElement } from '@/core/models'
 
 /** 创建测试用的ImageElement */

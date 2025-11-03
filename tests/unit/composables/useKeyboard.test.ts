@@ -14,22 +14,8 @@ import {
   SHORTCUTS
 } from '@/composables/useKeyboard'
 
-// 辅助函数：通过反射获取shortcuts数组（用于验证内部状态）
-function getShortcutsCount(): number {
-  // 我们无法直接访问shortcuts ref，所以通过间接方式验证
-  // 通过注册-注销-计数的方式来验证
-  let count = 0
-  const testKey = `test-count-${Date.now()}`
-  
-  // 注册一个测试快捷键
-  registerShortcut({ key: testKey, handler: () => {} })
-  
-  // 注销它
-  unregisterShortcut(testKey)
-  
-  // 如果能成功注销，说明注册工作正常
-  return count
-}
+// 注：快捷键的实际注册和触发需要在Vue组件环境中测试（需要onMounted钩子）
+// 这里主要测试API的调用不报错，实际功能在E2E测试中验证
 
 describe('useKeyboard - 快捷键注册与管理', () => {
   beforeEach(() => {

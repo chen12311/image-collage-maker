@@ -17,8 +17,10 @@ function createMockImage(id: string, fileName: string): ImageElement {
   return {
     id,
     fileName,
-    url: 'data:image/png;base64,test',
+    src: 'data:image/png;base64,test',
     image: img,
+    fileSize: 1024,
+    timestamp: Date.now(),
     width: 200,
     height: 200,
     index: 0,

@@ -16,13 +16,15 @@ function createTestState(imageCount: number = 0): CanvasState {
   const images = Array.from({ length: imageCount }, (_, i) => ({
     id: `img-${i}`,
     fileName: `test-${i}.jpg`,
-    url: `data:image/png;base64,test${i}`,
+    src: `data:image/png;base64,test${i}`,
     image: new Image(),
     width: 100,
     height: 100,
+    fileSize: 1024,
+    timestamp: Date.now(),
     index: i,
     transform: {
-      rotation: 0,
+      rotation: 0 as 0 | 90 | 180 | 270,
       flipH: false,
       flipV: false
     }
@@ -36,11 +38,9 @@ function createTestState(imageCount: number = 0): CanvasState {
 
 describe('HistoryManager - 基础功能', () => {
   let manager: HistoryManager
-  let initialState: CanvasState
 
   beforeEach(() => {
     manager = createHistoryManager()
-    initialState = createTestState(0)
   })
 
   it('应该正确创建历史管理器', () => {
@@ -111,13 +111,10 @@ describe('HistoryManager - 状态推送', () => {
     const original = createTestState(1)
     manager.push(original)
     
-    // 修改原始状态
-    const modified = { ...original, timestamp: 999 }
-    
     // 获取的状态应该与原始状态不同
     const current = manager.getCurrentState()
     expect(current).not.toBe(original)
-    expect(current?.timestamp).not.toBe(999)
+    expect(current?.timestamp).toBeDefined()
   })
 })
 

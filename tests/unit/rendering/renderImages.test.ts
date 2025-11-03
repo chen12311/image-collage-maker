@@ -15,7 +15,7 @@ describe('Canvas 渲染映射测试', () => {
   function simulateRender(cells: ComputedCell[], images: (ImageElement | null)[]) {
     const result: { cellIndex: number; imageId: string | null }[] = []
     
-    cells.forEach((cell, index) => {
+    cells.forEach((_cell, index) => {
       const image = images[index]
       if (image && image !== null) {
         result.push({ cellIndex: index, imageId: image.id })
@@ -35,6 +35,9 @@ describe('Canvas 渲染映射测试', () => {
       id,
       src: `data:image/png;base64,test`,
       fileName: `${id}.png`,
+      fileSize: 1024,
+      timestamp: Date.now(),
+      image: new Image(),
       index: 0,
       width: 100,
       height: 100,
@@ -50,7 +53,8 @@ describe('Canvas 渲染映射测试', () => {
    * 创建测试用的单元格
    */
   function createCells(count: number): ComputedCell[] {
-    return Array.from({ length: count }, (_, i) => ({
+    return Array.from({ length: count }, (_v, i) => ({
+      index: i,
       x: i * 100,
       y: 0,
       width: 100,

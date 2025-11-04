@@ -299,6 +299,20 @@ const iconComponents: Record<string, any> = {
       h('rect', { x: '3', y: '11', width: '18', height: '11', rx: '2', ry: '2' }),
       h('path', { d: 'M7 11V7a5 5 0 0 1 9.9-1' })
     ])
+  }),
+  
+  link: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('path', { d: 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71' }),
+      h('path', { d: 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71' })
+    ])
+  }),
+  
+  mail: defineComponent({
+    render: () => h('g', { stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('path', { d: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z' }),
+      h('polyline', { points: '22,6 12,13 2,6' })
+    ])
   })
 }
 

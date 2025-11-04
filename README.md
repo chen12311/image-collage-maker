@@ -1,6 +1,31 @@
 # 图片拼接工具
 
-一个简洁高效的在线图片拼接工具，基于Vue 3 + TypeScript构建。
+<div align="center">
+
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Vue](https://img.shields.io/badge/Vue-3.x-brightgreen.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
+![Vite](https://img.shields.io/badge/Vite-5.x-646CFF.svg)
+
+一个简洁高效的在线图片拼接工具，基于 Vue 3 + TypeScript 构建
+
+[在线演示](https://stitch.helimoyu.com) | [功能特性](#✨-功能特性) | [快速开始](#🚀-快速开始) | [贡献指南](#🤝-贡献指南)
+
+</div>
+
+---
+
+## 📖 项目简介
+
+**image-collage-maker** 是一个开源的在线图片拼接工具，提供直观的可视化界面，让您轻松创建精美的图片拼接效果。无需安装任何软件，在浏览器中即可完成所有操作。
+
+### 🌟 为什么选择 image-collage-maker？
+
+- 🎯 **简单易用**：拖拽式操作，零学习成本
+- 🚀 **性能优秀**：基于 Canvas API，实时渲染预览
+- 🎨 **高度自定义**：灵活的布局和样式控制
+- 💾 **隐私安全**：所有处理在本地完成，图片不上传服务器
+- 🌐 **完全开源**：MIT 协议，欢迎贡献和定制
 
 ## ✨ 功能特性
 
@@ -34,10 +59,10 @@
 
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/chen12311/image-collage-maker.git
 
 # 进入项目目录
-cd imageBatch
+cd image-collage-maker
 
 # 安装依赖
 npm install
@@ -232,23 +257,77 @@ tests/
 
 ## 🤝 贡献指南
 
-欢迎提交Issue和Pull Request！
+我们欢迎所有形式的贡献！无论是新功能、Bug修复、文档改进还是提出建议。
 
-1. Fork本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m '添加某个功能'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启Pull Request
+### 如何贡献
 
-## 📄 许可证 
+1. **Fork 本仓库**
+2. **创建特性分支**
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+3. **提交更改**
+   ```bash
+   git commit -m 'feat: 添加某个功能'
+   ```
+4. **推送到分支**
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+5. **开启 Pull Request**
 
-MIT License
+### 开发规范
+
+- 遵循项目代码风格和命名约定
+- 提交前运行 `npm run test` 确保测试通过
+- 提交前运行 `npm run build` 确保构建成功
+- 使用有意义的 commit message（参考 [Conventional Commits](https://www.conventionalcommits.org/)）
+- 为新功能添加相应的测试用例
+
+### 问题反馈
+
+如果您发现 Bug 或有功能建议，请在 [GitHub Issues](https://github.com/chen12311/image-collage-maker/issues) 提交。
+
+## 💬 社区与支持
+
+- 🐛 [报告 Bug](https://github.com/chen12311/image-collage-maker/issues/new?labels=bug)
+- 💡 [功能建议](https://github.com/chen12311/image-collage-maker/issues/new?labels=enhancement)
+- 📖 [查看文档](https://github.com/chen12311/image-collage-maker#readme)
+- ⭐ 如果这个项目对您有帮助，请给我们一个 Star！
+
+## 📄 许可证
+
+本项目采用 [MIT License](LICENSE) 开源协议。
+
+您可以自由地：
+- ✅ 使用、复制、修改、合并、发布、分发本软件
+- ✅ 用于商业目的
+- ✅ 创建衍生作品
+
+但需要保留原始的版权声明和许可证声明。
 
 ## 👥 作者
 
-ImageBatch团队
+由 [@chen12311](https://github.com/chen12311) 创建和维护
 
 ## 🙏 致谢
 
-感谢所有贡献者和用户的支持！
+感谢所有 [贡献者](https://github.com/chen12311/image-collage-maker/graphs/contributors) 的付出！
+
+### 技术栈致谢
+
+- [Vue.js](https://vuejs.org/) - 渐进式 JavaScript 框架
+- [TypeScript](https://www.typescriptlang.org/) - JavaScript 的超集
+- [Vite](https://vitejs.dev/) - 下一代前端构建工具
+- [Pinia](https://pinia.vuejs.org/) - Vue 状态管理库
+
+---
+
+<div align="center">
+
+如果觉得这个项目不错，欢迎 ⭐ Star 支持一下！
+
+Made with ❤️ by 合理摸鱼 Team
+
+</div>
 

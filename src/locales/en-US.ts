@@ -255,6 +255,16 @@ export default {
   language: {
     name: 'English',
     switch: 'Switch Language'
+  },
+  
+  about: {
+    title: 'About',
+    appName: 'Image Batch Stitcher',
+    version: 'Version',
+    description: 'A simple and efficient online image stitching tool with multiple layouts and custom settings',
+    github: 'GitHub Repository',
+    feedback: 'Feedback',
+    email: 'Email'
   }
 }
 

@@ -39,6 +39,11 @@
             <Icon name="help" size="md" />
           </button>
         </Tooltip>
+        
+        <button class="header-btn-with-text" @click="aboutVisible = !aboutVisible">
+          <span class="btn-text">{{ $t('about.title') }}</span>
+          <Icon name="info" size="md" />
+        </button>
       </div>
     </header>
 
@@ -118,6 +123,57 @@
         </div>
       </div>
     </Transition>
+
+    <!-- 关于对话框 -->
+    <Transition name="fade">
+      <div v-if="aboutVisible" class="help-overlay" @click="aboutVisible = false">
+        <div class="help-panel about-panel" @click.stop>
+          <div class="help-header">
+            <h2>{{ $t('about.title') }}</h2>
+            <button class="help-close" @click="aboutVisible = false">
+              <Icon name="close" size="md" />
+            </button>
+          </div>
+          <div class="help-content">
+            <div class="about-app-info">
+              <div class="about-logo">
+                <img src="/logo.svg" alt="ImageBatch Logo" />
+              </div>
+              <h3 class="about-app-name">{{ $t('about.appName') }}</h3>
+              <p class="about-version">{{ $t('about.version') }}: {{ appVersion }}</p>
+            </div>
+            
+            <div class="about-section">
+              <p class="about-description">{{ $t('about.description') }}</p>
+            </div>
+            
+            <div class="about-section">
+              <h4 class="about-section-title">{{ $t('about.github') }}</h4>
+              <a 
+                href="https://github.com/chen12311/image-collage-maker" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="about-link"
+              >
+                <Icon name="link" size="sm" />
+                <span>https://github.com/chen12311/image-collage-maker</span>
+              </a>
+            </div>
+            
+            <div class="about-section">
+              <h4 class="about-section-title">{{ $t('about.feedback') }}</h4>
+              <a 
+                href="mailto:17732263762@163.com" 
+                class="about-link"
+              >
+                <Icon name="mail" size="sm" />
+                <span>17732263762@163.com</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -138,8 +194,10 @@ const store = useAppStore()
 const { sidebarCollapsed, toggleSidebar } = useSidebar()
 const { registerShortcut } = useKeyboard()
 const helpVisible = ref(false)
+const aboutVisible = ref(false)
 const languageMenuVisible = ref(false)
 const languageButton = ref<HTMLElement>()
+const appVersion = '1.0.0'
 
 /** 检测是否是 Mac 系统 */
 const isMac = computed(() => {
@@ -516,6 +574,86 @@ onUnmounted(() => {
   box-shadow: var(--shadow-sm);
 }
 
+/* 关于对话框 */
+.about-panel {
+  max-width: 500px;
+}
+
+.about-app-info {
+  text-align: center;
+  padding: var(--spacing-6) 0;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.about-logo {
+  margin-bottom: var(--spacing-4);
+}
+
+.about-logo img {
+  width: 64px;
+  height: 64px;
+}
+
+.about-app-name {
+  margin: 0 0 var(--spacing-2);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-800);
+}
+
+.about-version {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
+}
+
+.about-section {
+  padding: var(--spacing-5) 0;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.about-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.about-description {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  color: var(--color-neutral-600);
+  text-align: center;
+}
+
+.about-section-title {
+  margin: 0 0 var(--spacing-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-700);
+}
+
+.about-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-500);
+  text-decoration: none;
+  background: var(--color-primary-50);
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+}
+
+.about-link:hover {
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+}
+
+.about-link:active {
+  transform: scale(0.98);
+}
+
 /* 响应式 */
 @media (max-width: 1200px) {
   .header-toggle-btn {
@@ -538,6 +676,14 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .app-title {
     font-size: var(--font-size-base);
+  }
+  
+  .about-panel {
+    max-width: 90vw;
+  }
+  
+  .header-btn-with-text .btn-text {
+    display: none;
   }
 }
 </style>

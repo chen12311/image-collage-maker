@@ -255,6 +255,16 @@ export default {
   language: {
     name: '简体中文',
     switch: '切换语言'
+  },
+  
+  about: {
+    title: '关于',
+    appName: '图片批量拼接工具',
+    version: '版本',
+    description: '一个简洁高效的在线图片拼接工具，支持多种布局和自定义设置',
+    github: 'GitHub 仓库',
+    feedback: '反馈与建议',
+    email: '邮箱'
   }
 }
 

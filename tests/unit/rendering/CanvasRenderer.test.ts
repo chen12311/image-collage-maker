@@ -65,7 +65,7 @@ describe('CanvasRenderer - 基础渲染', () => {
   beforeEach(() => {
     canvas = createMockCanvas()
     ctx = canvas.getContext('2d')!
-    layout = createLayoutConfig('grid-1x1')
+    layout = createLayoutConfig('grid-2x1-h')
     state = createEmptyCanvasState(layout)
   })
 
@@ -108,7 +108,7 @@ describe('CanvasRenderer - 背景渲染', () => {
   beforeEach(() => {
     canvas = createMockCanvas()
     ctx = canvas.getContext('2d')!
-    layout = createLayoutConfig('grid-1x1')
+    layout = createLayoutConfig('grid-2x1-h')
     state = createEmptyCanvasState(layout)
   })
 
@@ -193,7 +193,7 @@ describe('CanvasRenderer - 图片渲染', () => {
   beforeEach(() => {
     canvas = createMockCanvas()
     ctx = canvas.getContext('2d')!
-    layout = createLayoutConfig('grid-1x1')
+    layout = createLayoutConfig('grid-2x1-h')
     state = createEmptyCanvasState(layout)
   })
 
@@ -265,7 +265,7 @@ describe('CanvasRenderer - 图片变换', () => {
   beforeEach(() => {
     canvas = createMockCanvas()
     ctx = canvas.getContext('2d')!
-    layout = createLayoutConfig('grid-1x1')
+    layout = createLayoutConfig('grid-2x1-h')
     state = createEmptyCanvasState(layout)
   })
 
@@ -419,7 +419,7 @@ describe('CanvasRenderer - 文字渲染', () => {
   beforeEach(() => {
     canvas = createMockCanvas()
     ctx = canvas.getContext('2d')!
-    layout = createLayoutConfig('grid-1x1')
+    layout = createLayoutConfig('grid-2x1-h')
     state = createEmptyCanvasState(layout)
   })
 
@@ -498,7 +498,7 @@ describe('CanvasRenderer - 透明度', () => {
   beforeEach(() => {
     canvas = createMockCanvas()
     ctx = canvas.getContext('2d')!
-    layout = createLayoutConfig('grid-1x1')
+    layout = createLayoutConfig('grid-2x1-h')
     state = createEmptyCanvasState(layout)
   })
 
@@ -561,7 +561,7 @@ describe('CanvasRenderer - 圆角处理', () => {
     canvas = createMockCanvas()
     ctx = canvas.getContext('2d')!
     layout = {
-      ...createLayoutConfig('grid-1x1'),
+      ...createLayoutConfig('grid-2x1-h'),
       radius: 20
     }
     state = {
@@ -626,7 +626,7 @@ describe('CanvasRenderer - 快捷函数', () => {
   it('renderCanvas应该与CanvasRenderer.render等价', async () => {
     const canvas = createMockCanvas()
     const ctx = canvas.getContext('2d')!
-    const layout = createLayoutConfig('grid-1x1')
+    const layout = createLayoutConfig('grid-2x1-h')
     const state = createEmptyCanvasState(layout)
     const layoutResult = LayoutEngine.compute(layout, 800, 800)
     
@@ -651,7 +651,7 @@ describe('CanvasRenderer - 边界条件', () => {
   beforeEach(() => {
     canvas = createMockCanvas()
     ctx = canvas.getContext('2d')!
-    layout = createLayoutConfig('grid-1x1')
+    layout = createLayoutConfig('grid-2x1-h')
     state = createEmptyCanvasState(layout)
   })
 

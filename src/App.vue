@@ -7,7 +7,7 @@
           <Icon name="menu" size="md" />
         </button>
         <h1 class="app-title">
-          <img src="/logo.svg" alt="ImageBatch Logo" class="app-logo" />
+          <img src="/logo.svg" alt="ImageCollageMaker Logo" class="app-logo" />
           {{ $t('app.title') }}
         </h1>
       </div>
@@ -137,7 +137,7 @@
           <div class="help-content">
             <div class="about-app-info">
               <div class="about-logo">
-                <img src="/logo.svg" alt="ImageBatch Logo" />
+                <img src="/logo.svg" alt="ImageCollageMaker Logo" />
               </div>
               <h3 class="about-app-name">{{ $t('about.appName') }}</h3>
               <p class="about-version">{{ $t('about.version') }}: {{ appVersion }}</p>

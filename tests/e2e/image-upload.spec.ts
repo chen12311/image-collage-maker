@@ -13,7 +13,7 @@ test.describe('图片上传功能', () => {
 
   test('应用应该正常加载', async ({ page }) => {
     // 验证页面标题
-    await expect(page).toHaveTitle(/ImageBatch|图片拼接/)
+    await expect(page).toHaveTitle(/ImageCollageMaker|图片拼接/)
     
     // 验证核心UI元素存在
     await expect(page.locator('canvas')).toBeVisible()

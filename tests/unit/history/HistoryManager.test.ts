@@ -9,7 +9,7 @@ import type { CanvasState } from '@/core/models'
 
 /** 创建测试用的画布状态 */
 function createTestState(imageCount: number = 0): CanvasState {
-  const layout = createLayoutConfig('grid-1x1')
+  const layout = createLayoutConfig('grid-2x1-h')
   const state = createEmptyCanvasState(layout)
   
   // 添加指定数量的虚拟图片

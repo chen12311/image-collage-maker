@@ -1,7 +1,7 @@
 # CLAUDE.md 开发准则
 
 ## 📋 项目信息
-- **项目名称**：ImageBatch - 图片拼接工具
+- **项目名称**：ImageCollageMaker - 图片拼接工具
 - **技术栈**：Vue 3 + TypeScript + Pinia + Vite + Canvas API
 - **测试框架**：Jest + Playwright
 - **代码风格**：TypeScript严格模式 + Vue 3 Composition API
@@ -226,7 +226,7 @@ WebSearch query="Vue 3 Canvas 实现示例"
 
 ## 🔧 项目特定规则
 
-### ImageBatch 项目约定
+### ImageCollageMaker 项目约定
 - **组件化**：UI 组件独立，职责明确
 - **状态管理**：使用 Pinia，避免 prop drilling
 - **Canvas 渲染**：封装到独立模块，避免污染组件
@@ -338,7 +338,7 @@ npm run test:all         # 运行所有测试（单元 + E2E）
 
 **文档版本**：v2.1
 **更新时间**：2025-10-22
-**适用项目**：ImageBatch - 图片拼接工具
+**适用项目**：ImageCollageMaker - 图片拼接工具
 
 ## 📋 更新日志
 

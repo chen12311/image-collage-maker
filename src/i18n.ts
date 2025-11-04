@@ -4,7 +4,7 @@
 import { createI18n } from 'vue-i18n'
 import { messages, type Locale } from './locales'
 
-const LOCALE_KEY = 'imagebatch-locale'
+const LOCALE_KEY = 'ImageCollageMaker-locale'
 
 /**
  * 检测浏览器语言

@@ -12,7 +12,7 @@
 - **设计要求**：
   - 简洁明了，在小尺寸下清晰可辨
   - 建议使用品牌主色
-  - 推荐使用"ImageBatch"首字母"I"或图片拼接图标
+  - 推荐使用"ImageCollageMaker"首字母"I"或图片拼接图标
 
 ### 2. favicon-32x32.png
 - **路径**：`/public/favicon-32x32.png`
@@ -38,7 +38,7 @@
 - **格式**：PNG 或 JPG
 - **用途**：社交平台分享卡片（微信、Facebook、Twitter等）
 - **设计要求**：
-  - 突出显示应用名称"ImageBatch"
+  - 突出显示应用名称"ImageCollageMaker"
   - 简要展示核心功能（如：多图拼接示例）
   - 避免在边缘区域放置文字（可能被裁剪）
   - 安全区域：距离边缘至少40px
@@ -76,7 +76,7 @@
 # 使用 ImageMagick 生成占位符（需安装 ImageMagick）
 convert -size 32x32 xc:#3b82f6 public/favicon-32x32.png
 convert -size 180x180 xc:#3b82f6 public/apple-touch-icon.png
-convert -size 1200x630 xc:#3b82f6 -pointsize 60 -fill white -gravity center -annotate +0+0 'ImageBatch' public/og-image.png
+convert -size 1200x630 xc:#3b82f6 -pointsize 60 -fill white -gravity center -annotate +0+0 'ImageCollageMaker' public/og-image.png
 ```
 
 ## ✅ 验证清单

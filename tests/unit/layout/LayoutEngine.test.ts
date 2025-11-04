@@ -7,12 +7,12 @@ import { createLayoutConfig, getLayoutById } from '@/core/models'
 import type { LayoutConfig } from '@/core/models'
 
 describe('LayoutEngine - 基础功能', () => {
-  it('应该正确计算1x1布局', () => {
-    const config = createLayoutConfig('grid-1x1')
+  it('应该正确计算2x1布局', () => {
+    const config = createLayoutConfig('grid-2x1-h')
     
     const result = LayoutEngine.compute(config, 800, 800)
     
-    expect(result.cells.length).toBe(1)
+    expect(result.cells.length).toBe(2)
     expect(result.availableWidth).toBe(800) // 无边距时
     expect(result.availableHeight).toBe(800)
   })
@@ -26,7 +26,7 @@ describe('LayoutEngine - 基础功能', () => {
   })
 
   it('应该返回完整的布局结果', () => {
-    const config = createLayoutConfig('grid-1x1')
+    const config = createLayoutConfig('grid-2x1-h')
     
     const result = LayoutEngine.compute(config, 800, 800)
     
@@ -39,7 +39,7 @@ describe('LayoutEngine - 基础功能', () => {
 
 describe('LayoutEngine - 边距计算', () => {
   it('应该正确处理边距', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 20) // 20px边距
     
     const result = LayoutEngine.compute(config, 800, 800)
@@ -49,7 +49,7 @@ describe('LayoutEngine - 边距计算', () => {
   })
 
   it('应该在单元格位置中应用边距', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 20)
     
     const result = LayoutEngine.compute(config, 800, 800)
@@ -57,12 +57,12 @@ describe('LayoutEngine - 边距计算', () => {
     
     expect(cell.x).toBe(20) // 从边距开始
     expect(cell.y).toBe(20)
-    expect(cell.width).toBe(760) // 减去边距
+    expect(cell.width).toBe(370) // (800 - 20*2 - 10) / 2 = 370 (两张图，中间有间距)
     expect(cell.height).toBe(760)
   })
 
   it('应该处理零边距', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 0)
     
     const result = LayoutEngine.compute(config, 800, 800)
@@ -74,7 +74,7 @@ describe('LayoutEngine - 边距计算', () => {
   })
 
   it('应该处理大边距', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 100)
     
     const result = LayoutEngine.compute(config, 800, 800)
@@ -164,7 +164,7 @@ describe('LayoutEngine - 单元格索引', () => {
 
 describe('LayoutEngine - 点击检测', () => {
   it('应该正确检测点是否在单元格内', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 0)
     const result = LayoutEngine.compute(config, 800, 800)
     const cell = result.cells[0]
@@ -212,7 +212,7 @@ describe('LayoutEngine - 点击检测', () => {
   })
 
   it('超出范围的点应该返回undefined', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 0)
     const result = LayoutEngine.compute(config, 800, 800)
     
@@ -252,19 +252,19 @@ describe('LayoutEngine - 不同画布尺寸', () => {
   })
 
   it('应该处理小画布', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 0)
     
     const result = LayoutEngine.compute(config, 100, 100)
     
     expect(result.availableWidth).toBe(100)
     expect(result.availableHeight).toBe(100)
-    expect(result.cells[0].width).toBe(100)
+    expect(result.cells[0].width).toBe(50) // 两列，每列50px
     expect(result.cells[0].height).toBe(100)
   })
 
   it('应该处理超大画布', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 0)
     
     const result = LayoutEngine.compute(config, 4096, 4096)
@@ -355,7 +355,7 @@ describe('LayoutEngine - 快捷函数', () => {
 
 describe('LayoutEngine - 边界条件', () => {
   it('应该处理边距大于画布尺寸', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 500) // 边距500，画布400
     
     const result = LayoutEngine.compute(config, 400, 400)
@@ -365,7 +365,7 @@ describe('LayoutEngine - 边界条件', () => {
   })
 
   it('应该处理零尺寸画布', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 0)
     
     const result = LayoutEngine.compute(config, 0, 0)
@@ -375,7 +375,7 @@ describe('LayoutEngine - 边界条件', () => {
   })
 
   it('应该处理负数坐标查询', () => {
-    const layout = getLayoutById('grid-1x1')!
+    const layout = getLayoutById('grid-2x1-h')!
     const config = createLayoutConfig(layout, 0)
     const result = LayoutEngine.compute(config, 800, 800)
     

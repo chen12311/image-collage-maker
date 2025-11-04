@@ -1,5 +1,5 @@
 {
-  "name": "imagebatch",
+  "name": "ImageCollageMaker",
   "version": "1.0.0",
   "description": "在线图片拼接工具 - 简洁高效的多图拼接解决方案",
   "type": "module",

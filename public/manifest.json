@@ -1,6 +1,6 @@
 {
-  "name": "ImageBatch - 图片拼接工具",
-  "short_name": "ImageBatch",
+  "name": "ImageCollageMaker - 图片拼接工具",
+  "short_name": "ImageCollageMaker",
   "description": "在线图片拼接工具，支持多种布局、文字添加、样式自定义，简洁高效的多图拼接解决方案",
   "start_url": "/",
   "display": "standalone",

@@ -21,21 +21,21 @@ interface SEOConfig {
  */
 const seoConfigs: Record<string, SEOConfig> = {
   'zh-CN': {
-    title: 'ImageBatch - 在线图片拼接工具 | 免费多图拼接、照片拼图制作',
-    description: 'ImageBatch 是一款简洁高效的在线图片拼接工具，支持多种布局模式（1-4宫格）、自定义文字、背景设置、实时预览。无需注册，完全免费，浏览器内完成所有操作，保护隐私安全。',
+    title: 'ImageCollageMaker - 在线图片拼接工具 | 免费多图拼接、照片拼图制作',
+    description: 'ImageCollageMaker 是一款简洁高效的在线图片拼接工具，支持多种布局模式（1-4宫格）、自定义文字、背景设置、实时预览。无需注册，完全免费，浏览器内完成所有操作，保护隐私安全。',
     keywords: '图片拼接,照片拼图,图片合成,多图拼接,在线拼图工具,照片网格,图片拼贴,collage maker,image stitcher,photo grid',
-    ogTitle: 'ImageBatch - 在线图片拼接工具 | 免费多图拼接',
+    ogTitle: 'ImageCollageMaker - 在线图片拼接工具 | 免费多图拼接',
     ogDescription: '简洁高效的在线图片拼接工具，支持多种布局、自定义文字、实时预览。无需注册，完全免费，浏览器内完成所有操作。',
-    twitterTitle: 'ImageBatch - 在线图片拼接工具',
+    twitterTitle: 'ImageCollageMaker - 在线图片拼接工具',
     twitterDescription: '简洁高效的在线图片拼接工具，支持多种布局、自定义文字、实时预览。无需注册，完全免费。'
   },
   'en-US': {
-    title: 'ImageBatch - Online Image Stitcher | Free Photo Collage Maker',
-    description: 'ImageBatch is a simple and efficient online image stitching tool. Supports multiple layouts (1-4 grids), custom text, background settings, and real-time preview. No registration required, completely free, all operations in browser, privacy protected.',
+    title: 'ImageCollageMaker - Online Image Stitcher | Free Photo Collage Maker',
+    description: 'ImageCollageMaker is a simple and efficient online image stitching tool. Supports multiple layouts (1-4 grids), custom text, background settings, and real-time preview. No registration required, completely free, all operations in browser, privacy protected.',
     keywords: 'image stitcher,photo collage,collage maker,photo grid,image combiner,picture merge,online collage tool,图片拼接,照片拼图',
-    ogTitle: 'ImageBatch - Online Image Stitcher | Free Collage Maker',
+    ogTitle: 'ImageCollageMaker - Online Image Stitcher | Free Collage Maker',
     ogDescription: 'Simple and efficient online image stitching tool. Multiple layouts, custom text, real-time preview. No registration, completely free.',
-    twitterTitle: 'ImageBatch - Online Image Stitcher',
+    twitterTitle: 'ImageCollageMaker - Online Image Stitcher',
     twitterDescription: 'Simple and efficient online image stitching tool. Multiple layouts, custom text, real-time preview. No registration required.'
   }
 }

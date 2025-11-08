@@ -92,7 +92,15 @@ export default {
       opacitySection: '透明度',
       globalOpacity: '整体透明度',
       imageOpacity: '图片透明度',
-      resetAll: '重置所有设置'
+      resetAll: '重置所有设置',
+      fitModeSection: '图片适应',
+      fitMode: '适应模式',
+      cover: '裁剪填充',
+      contain: '完整显示',
+      fill: '拉伸填充',
+      coverDesc: '保持比例填满，超出部分裁剪',
+      containDesc: '完整显示图片，可能有留白',
+      fillDesc: '拉伸填满，不保持比例'
     }
   },
   

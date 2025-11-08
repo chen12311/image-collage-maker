@@ -252,7 +252,8 @@ describe('ImageElement - getImageAspectRatio()', () => {
         flipH: false,
         flipV: false,
         rotation: 0
-      }
+      },
+      fitMode: 'contain'
     }
   }
 

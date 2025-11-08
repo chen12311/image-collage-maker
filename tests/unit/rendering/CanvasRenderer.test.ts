@@ -32,7 +32,8 @@ function createTestImage(id: string): ImageElement {
       rotation: 0,
       flipH: false,
       flipV: false
-    }
+    },
+    fitMode: 'contain'
   }
 }
 
@@ -276,7 +277,8 @@ describe('CanvasRenderer - 图片变换', () => {
         rotation: 90 as 0 | 90 | 180 | 270,
         flipH: false,
         flipV: false
-      }
+      },
+      fitMode: 'contain' as const
     }
     
     const layoutResult = LayoutEngine.compute(layout, 800, 800)
@@ -300,7 +302,8 @@ describe('CanvasRenderer - 图片变换', () => {
         rotation: 0 as 0 | 90 | 180 | 270,
         flipH: true,
         flipV: false
-      }
+      },
+      fitMode: 'contain' as const
     }
     
     const layoutResult = LayoutEngine.compute(layout, 800, 800)
@@ -324,7 +327,8 @@ describe('CanvasRenderer - 图片变换', () => {
         rotation: 0 as 0 | 90 | 180 | 270,
         flipH: false,
         flipV: true
-      }
+      },
+      fitMode: 'contain' as const
     }
     
     const layoutResult = LayoutEngine.compute(layout, 800, 800)
@@ -347,7 +351,8 @@ describe('CanvasRenderer - 图片变换', () => {
         rotation: 90 as 0 | 90 | 180 | 270,
         flipH: true,
         flipV: false
-      }
+      },
+      fitMode: 'contain' as const
     }
     
     const layoutResult = LayoutEngine.compute(layout, 800, 800)

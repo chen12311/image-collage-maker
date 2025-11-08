@@ -25,7 +25,8 @@ function createTestImage(width: number, height: number): ImageElement {
       rotation: 0,
       flipH: false,
       flipV: false
-    }
+    },
+    fitMode: 'contain'
   }
 }
 

@@ -33,7 +33,8 @@ function createTestImageElement(id: string): ImageElement {
       flipH: false,
       flipV: false,
       rotation: 0
-    }
+    },
+    fitMode: 'contain'
   }
 }
 

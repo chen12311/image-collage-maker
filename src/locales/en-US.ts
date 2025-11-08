@@ -92,7 +92,15 @@ export default {
       opacitySection: 'Opacity',
       globalOpacity: 'Global Opacity',
       imageOpacity: 'Image Opacity',
-      resetAll: 'Reset All Settings'
+      resetAll: 'Reset All Settings',
+      fitModeSection: 'Image Fit',
+      fitMode: 'Fit Mode',
+      cover: 'Cover',
+      contain: 'Contain',
+      fill: 'Fill',
+      coverDesc: 'Crop to fill, maintaining aspect ratio',
+      containDesc: 'Show complete image, may have gaps',
+      fillDesc: 'Stretch to fill, ignore aspect ratio'
     }
   },
   

@@ -9,6 +9,7 @@ import { ref, computed, watch } from 'vue'
 import {
   type LayoutConfig,
   type ImageElement,
+  type ImageFitMode,
   type TextElement,
   type CanvasState,
   type CanvasSize,
@@ -91,6 +92,9 @@ export const useAppStore = defineStore('app', () => {
   
   /** 是否自动适配画布缩放 */
   const autoFit = ref(true)
+  
+  /** 默认图片适应模式 */
+  const defaultFitMode = ref<ImageFitMode>('contain')
   
   // ============================================================================
   // 历史管理器
@@ -426,8 +430,14 @@ export const useAppStore = defineStore('app', () => {
     // 先清理 null 值，避免删除后再添加时索引错位
     cleanupImages()
     
+    // 应用默认适应模式
+    const imagesWithFitMode = newImages.map(img => ({
+      ...img,
+      fitMode: defaultFitMode.value
+    }))
+    
     // 再添加新图片
-    images.value.push(...newImages)
+    images.value.push(...imagesWithFitMode)
   }
   
   /**
@@ -577,6 +587,23 @@ export const useAppStore = defineStore('app', () => {
     }
   }
   
+  /**
+   * 设置默认图片适应模式
+   */
+  function setDefaultFitMode(mode: ImageFitMode) {
+    defaultFitMode.value = mode
+  }
+  
+  /**
+   * 设置单张图片的适应模式
+   */
+  function setImageFitMode(id: string, mode: ImageFitMode) {
+    const image = images.value.find(img => img && img !== null && img.id === id)
+    if (image) {
+      image.fitMode = mode
+    }
+  }
+  
   // ============================================================================
   // 文字操作
   // ============================================================================
@@ -659,6 +686,7 @@ export const useAppStore = defineStore('app', () => {
     canvasHeight.value = 800
     images.value = []
     texts.value = []
+    defaultFitMode.value = 'contain'
   }
   
   /**
@@ -753,6 +781,7 @@ export const useAppStore = defineStore('app', () => {
     exportFormat,
     canvasScale,
     autoFit,
+    defaultFitMode,
     
     // 计算属性
     layoutConfig,
@@ -804,6 +833,8 @@ export const useAppStore = defineStore('app', () => {
     flipImageHorizontal,
     flipImageVertical,
     rotateImage,
+    setDefaultFitMode,
+    setImageFitMode,
     addText,
     updateText,
     removeText,

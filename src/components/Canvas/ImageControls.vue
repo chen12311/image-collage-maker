@@ -19,6 +19,12 @@
         </button>
       </Tooltip>
       
+      <Tooltip :content="fitModeTooltip" placement="top">
+        <button class="control-btn" @click="cycleFitMode" :aria-label="fitModeTooltip">
+          <Icon :name="fitModeIcon" size="sm" />
+        </button>
+      </Tooltip>
+      
       <Tooltip :content="$t('interaction.deleteTooltip')" placement="top">
         <button class="control-btn control-btn-danger" @click="$emit('delete')" :aria-label="$t('interaction.deleteTooltip')">
           <Icon name="trash" size="sm" />
@@ -30,8 +36,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { ImageFitMode } from '@/core/models'
 import Icon from '@/components/Common/Icon.vue'
 import Tooltip from '@/components/Common/Tooltip.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 /** 组件属性 */
 interface Props {
@@ -46,16 +56,20 @@ interface Props {
   
   /** 高度 */
   height: number
+  
+  /** 适应模式 */
+  fitMode: ImageFitMode
 }
 
 const props = defineProps<Props>()
 
 /** 事件定义 */
-defineEmits<{
+const emit = defineEmits<{
   'flip-horizontal': []
   'flip-vertical': []
   'rotate': []
   'delete': []
+  'change-fit-mode': [mode: ImageFitMode]
 }>()
 
 /** 控制器样式 */
@@ -64,6 +78,34 @@ const controlsStyle = computed(() => ({
   top: `${props.y + 4}px`,
   transform: 'translateX(-100%)'
 }))
+
+/** 适应模式图标 */
+const fitModeIcon = computed(() => {
+  switch (props.fitMode) {
+    case 'cover':
+      return 'maximize' // 裁剪填充
+    case 'contain':
+      return 'minimize' // 完整显示
+    case 'fill':
+      return 'maximize-2' // 拉伸填充
+    default:
+      return 'minimize'
+  }
+})
+
+/** 适应模式提示 */
+const fitModeTooltip = computed(() => {
+  const modeName = t(`sidebar.settings.${props.fitMode}`)
+  return `${t('sidebar.settings.fitMode')}: ${modeName}`
+})
+
+/** 循环切换适应模式 */
+function cycleFitMode() {
+  const modes: ImageFitMode[] = ['contain', 'cover', 'fill']
+  const currentIndex = modes.indexOf(props.fitMode)
+  const nextIndex = (currentIndex + 1) % modes.length
+  emit('change-fit-mode', modes[nextIndex])
+}
 </script>
 
 <style scoped>

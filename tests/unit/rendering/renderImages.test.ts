@@ -45,7 +45,8 @@ describe('Canvas 渲染映射测试', () => {
         flipH: false,
         flipV: false,
         rotation: 0
-      }
+      },
+      fitMode: 'contain'
     }
   }
 

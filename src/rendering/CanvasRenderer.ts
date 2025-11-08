@@ -213,8 +213,8 @@ export class CanvasRenderer {
       // 移回原点
       ctx.translate(-width / 2, -height / 2)
       
-      // 计算cover模式的绘制参数（相对于变换后的坐标系）
-      const drawInfo = this.calculateCoverDraw(image, {
+      // 根据适应模式计算绘制参数（相对于变换后的坐标系）
+      const drawInfo = this.calculateDrawInfo(image, {
         ...cell,
         x: 0,
         y: 0
@@ -235,10 +235,10 @@ export class CanvasRenderer {
         )
       }
     } else {
-      // 无变换，正常绘制
-      const drawInfo = this.calculateCoverDraw(image, cell)
+      // 无变换，根据适应模式绘制
+      const drawInfo = this.calculateDrawInfo(image, cell)
       
-      // 绘制图片（使用裁剪方式以支持cover模式）
+      // 绘制图片
       if (drawInfo) {
         ctx.drawImage(
           image.image,
@@ -258,8 +258,27 @@ export class CanvasRenderer {
   }
   
   /**
-   * 计算cover模式的绘制参数
-   * 参考demo中的逻辑
+   * 根据适应模式计算绘制参数
+   */
+  private static calculateDrawInfo(
+    image: ImageElement,
+    cell: ComputedCell
+  ): ImageDrawInfo | null {
+    switch (image.fitMode) {
+      case 'cover':
+        return this.calculateCoverDraw(image, cell)
+      case 'contain':
+        return this.calculateContainDraw(image, cell)
+      case 'fill':
+        return this.calculateFillDraw(image, cell)
+      default:
+        return this.calculateContainDraw(image, cell)
+    }
+  }
+  
+  /**
+   * 计算cover模式的绘制参数（裁剪填充）
+   * 图片保持比例，填满单元格，超出部分裁剪
    */
   private static calculateCoverDraw(
     image: ImageElement,
@@ -300,6 +319,72 @@ export class CanvasRenderer {
         dw: cell.width,
         dh: cell.height
       }
+    }
+  }
+  
+  /**
+   * 计算contain模式的绘制参数（完整显示）
+   * 图片保持比例，完整显示在单元格内，不裁剪
+   */
+  private static calculateContainDraw(
+    image: ImageElement,
+    cell: ComputedCell
+  ): ImageDrawInfo | null {
+    const imgRatio = image.width / image.height
+    const cellRatio = cell.width / cell.height
+    
+    if (imgRatio > cellRatio) {
+      // 图片更宽，宽度填满，高度居中留白
+      const scale = cell.width / image.width
+      const scaledHeight = image.height * scale
+      const offsetY = (cell.height - scaledHeight) / 2
+      
+      return {
+        sx: 0,
+        sy: 0,
+        sw: image.width,
+        sh: image.height,
+        dx: cell.x,
+        dy: cell.y + offsetY,
+        dw: cell.width,
+        dh: scaledHeight
+      }
+    } else {
+      // 图片更高，高度填满，宽度居中留白
+      const scale = cell.height / image.height
+      const scaledWidth = image.width * scale
+      const offsetX = (cell.width - scaledWidth) / 2
+      
+      return {
+        sx: 0,
+        sy: 0,
+        sw: image.width,
+        sh: image.height,
+        dx: cell.x + offsetX,
+        dy: cell.y,
+        dw: scaledWidth,
+        dh: cell.height
+      }
+    }
+  }
+  
+  /**
+   * 计算fill模式的绘制参数（拉伸填充）
+   * 图片拉伸填满单元格，不保持比例
+   */
+  private static calculateFillDraw(
+    image: ImageElement,
+    cell: ComputedCell
+  ): ImageDrawInfo | null {
+    return {
+      sx: 0,
+      sy: 0,
+      sw: image.width,
+      sh: image.height,
+      dx: cell.x,
+      dy: cell.y,
+      dw: cell.width,
+      dh: cell.height
     }
   }
   

@@ -5,6 +5,11 @@
  */
 
 /**
+ * 图片适应模式
+ */
+export type ImageFitMode = 'cover' | 'contain' | 'fill'
+
+/**
  * 图片变换配置
  */
 export interface ImageTransform {
@@ -51,6 +56,9 @@ export interface ImageElement {
   
   /** 图片变换状态 */
   transform: ImageTransform
+  
+  /** 图片适应模式 */
+  fitMode: ImageFitMode
 }
 
 /**
@@ -83,7 +91,8 @@ export async function createImageElement(
             flipH: false,
             flipV: false,
             rotation: 0
-          }
+          },
+          fitMode: 'contain' // 默认使用 contain 模式，完整显示图片
         })
       }
       

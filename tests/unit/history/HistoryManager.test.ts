@@ -27,7 +27,8 @@ function createTestState(imageCount: number = 0): CanvasState {
       rotation: 0 as 0 | 90 | 180 | 270,
       flipH: false,
       flipV: false
-    }
+    },
+    fitMode: 'contain' as const
   }))
   
   return {

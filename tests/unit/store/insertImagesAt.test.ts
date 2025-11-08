@@ -32,7 +32,8 @@ describe('insertImagesAt 函数测试', () => {
         flipH: false,
         flipV: false,
         rotation: 0
-      }
+      },
+      fitMode: 'contain'
     }
   }
 

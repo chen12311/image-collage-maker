@@ -28,7 +28,8 @@ function createMockImage(id: string, fileName: string): ImageElement {
       rotation: 0,
       flipH: false,
       flipV: false
-    }
+    },
+    fitMode: 'contain'
   }
 }
 

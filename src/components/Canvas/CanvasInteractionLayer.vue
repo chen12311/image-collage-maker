@@ -47,12 +47,14 @@
         :y="computedCells[hoveredIndex].y"
         :width="computedCells[hoveredIndex].width"
         :height="computedCells[hoveredIndex].height"
+        :fit-mode="images[hoveredIndex]!.fitMode"
         @mouseenter="handleControlsEnter"
         @mouseleave="handleControlsLeave"
         @flip-horizontal="handleFlipHorizontal(images[hoveredIndex]!.id)"
         @flip-vertical="handleFlipVertical(images[hoveredIndex]!.id)"
         @rotate="handleRotate(images[hoveredIndex]!.id)"
         @delete="handleDelete(images[hoveredIndex]!.id)"
+        @change-fit-mode="handleChangeFitMode(images[hoveredIndex]!.id, $event)"
       />
     </Transition>
     
@@ -222,6 +224,11 @@ function handleDelete(id: string) {
     toast.success(t('interaction.imageDeleted', { fileName: image.fileName }))
     hoveredIndex.value = null
   }
+}
+
+/** 更改适应模式 */
+function handleChangeFitMode(id: string, mode: import('@/core/models').ImageFitMode) {
+  store.setImageFitMode(id, mode)
 }
 
 /** 处理点击空白位置 */

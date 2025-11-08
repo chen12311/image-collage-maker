@@ -10,6 +10,7 @@ import {
   type LayoutConfig,
   type ImageElement,
   type ImageFitMode,
+  type CropConfig,
   type TextElement,
   type CanvasState,
   type CanvasSize,
@@ -604,6 +605,17 @@ export const useAppStore = defineStore('app', () => {
     }
   }
   
+  /**
+   * 设置图片裁剪配置
+   */
+  function setCropConfig(id: string, crop: CropConfig | undefined) {
+    const image = images.value.find(img => img && img !== null && img.id === id)
+    if (image) {
+      image.crop = crop
+      recordHistory()
+    }
+  }
+  
   // ============================================================================
   // 文字操作
   // ============================================================================
@@ -835,6 +847,7 @@ export const useAppStore = defineStore('app', () => {
     rotateImage,
     setDefaultFitMode,
     setImageFitMode,
+    setCropConfig,
     addText,
     updateText,
     removeText,

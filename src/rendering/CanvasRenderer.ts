@@ -264,15 +264,57 @@ export class CanvasRenderer {
     image: ImageElement,
     cell: ComputedCell
   ): ImageDrawInfo | null {
+    let drawInfo: ImageDrawInfo | null
+    
+    // 先根据fitMode计算基本绘制参数
     switch (image.fitMode) {
       case 'cover':
-        return this.calculateCoverDraw(image, cell)
+        drawInfo = this.calculateCoverDraw(image, cell)
+        break
       case 'contain':
-        return this.calculateContainDraw(image, cell)
+        drawInfo = this.calculateContainDraw(image, cell)
+        break
       case 'fill':
-        return this.calculateFillDraw(image, cell)
+        drawInfo = this.calculateFillDraw(image, cell)
+        break
       default:
-        return this.calculateContainDraw(image, cell)
+        drawInfo = this.calculateContainDraw(image, cell)
+    }
+    
+    // 如果有裁剪配置，应用裁剪到源图片区域
+    if (drawInfo && image.crop) {
+      drawInfo = this.applyCrop(drawInfo, image)
+    }
+    
+    return drawInfo
+  }
+  
+  /**
+   * 应用裁剪配置到绘制参数
+   */
+  private static applyCrop(drawInfo: ImageDrawInfo, image: ImageElement): ImageDrawInfo {
+    if (!image.crop) return drawInfo
+    
+    const { crop } = image
+    
+    // 计算裁剪后的源区域
+    // crop是归一化坐标（0-1），需要转换为实际像素
+    const cropX = image.width * crop.x
+    const cropY = image.height * crop.y
+    const cropWidth = image.width * crop.width
+    const cropHeight = image.height * crop.height
+    
+    // 调整源图片的绘制区域
+    // 将现有的sx, sy, sw, sh映射到裁剪区域内
+    const scaleX = cropWidth / image.width
+    const scaleY = cropHeight / image.height
+    
+    return {
+      ...drawInfo,
+      sx: cropX + drawInfo.sx * scaleX,
+      sy: cropY + drawInfo.sy * scaleY,
+      sw: drawInfo.sw * scaleX,
+      sh: drawInfo.sh * scaleY
     }
   }
   

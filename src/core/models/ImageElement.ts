@@ -10,6 +10,24 @@
 export type ImageFitMode = 'cover' | 'contain' | 'fill'
 
 /**
+ * 图片裁剪配置
+ * 使用归一化坐标系统（0-1）
+ */
+export interface CropConfig {
+  /** 裁剪区域X坐标（归一化，相对于图片宽度） */
+  x: number
+  
+  /** 裁剪区域Y坐标（归一化，相对于图片高度） */
+  y: number
+  
+  /** 裁剪区域宽度（归一化，相对于图片宽度） */
+  width: number
+  
+  /** 裁剪区域高度（归一化，相对于图片高度） */
+  height: number
+}
+
+/**
  * 图片变换配置
  */
 export interface ImageTransform {
@@ -59,6 +77,9 @@ export interface ImageElement {
   
   /** 图片适应模式 */
   fitMode: ImageFitMode
+  
+  /** 图片裁剪配置（可选） */
+  crop?: CropConfig
 }
 
 /**

@@ -25,6 +25,12 @@
         </button>
       </Tooltip>
       
+      <Tooltip :content="$t('interaction.cropTooltip')" placement="top">
+        <button class="control-btn" @click="$emit('crop')" :aria-label="$t('interaction.cropTooltip')">
+          <Icon name="crop" size="sm" />
+        </button>
+      </Tooltip>
+      
       <Tooltip :content="$t('interaction.deleteTooltip')" placement="top">
         <button class="control-btn control-btn-danger" @click="$emit('delete')" :aria-label="$t('interaction.deleteTooltip')">
           <Icon name="trash" size="sm" />
@@ -68,6 +74,7 @@ const emit = defineEmits<{
   'flip-horizontal': []
   'flip-vertical': []
   'rotate': []
+  'crop': []
   'delete': []
   'change-fit-mode': [mode: ImageFitMode]
 }>()

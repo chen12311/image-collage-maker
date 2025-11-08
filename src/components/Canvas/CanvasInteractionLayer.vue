@@ -41,7 +41,7 @@
     <!-- 全局控件（只有一个实例，根据 hoveredIndex 动态定位） -->
     <Transition name="controls-fade">
       <ImageControls
-        v-if="hoveredIndex !== null && images[hoveredIndex] && images[hoveredIndex] !== null && computedCells[hoveredIndex]"
+        v-if="hoveredIndex !== null && images[hoveredIndex] && images[hoveredIndex] !== null && computedCells[hoveredIndex] && !croppingImageId"
         :key="`controls-${hoveredIndex}`"
         :x="computedCells[hoveredIndex].x"
         :y="computedCells[hoveredIndex].y"
@@ -53,8 +53,25 @@
         @flip-horizontal="handleFlipHorizontal(images[hoveredIndex]!.id)"
         @flip-vertical="handleFlipVertical(images[hoveredIndex]!.id)"
         @rotate="handleRotate(images[hoveredIndex]!.id)"
+        @crop="handleStartCrop(images[hoveredIndex]!.id)"
         @delete="handleDelete(images[hoveredIndex]!.id)"
         @change-fit-mode="handleChangeFitMode(images[hoveredIndex]!.id, $event)"
+      />
+    </Transition>
+    
+    <!-- 裁剪覆盖层 -->
+    <Transition name="crop-fade">
+      <ImageCropOverlay
+        v-if="croppingImageId && croppingImageIndex !== null && computedCells[croppingImageIndex] && images[croppingImageIndex]"
+        :x="computedCells[croppingImageIndex].x"
+        :y="computedCells[croppingImageIndex].y"
+        :width="computedCells[croppingImageIndex].width"
+        :height="computedCells[croppingImageIndex].height"
+        :image-width="images[croppingImageIndex]!.width"
+        :image-height="images[croppingImageIndex]!.height"
+        :initial-crop="images[croppingImageIndex]!.crop"
+        @confirm="handleCropConfirm"
+        @cancel="handleCropCancel"
       />
     </Transition>
     
@@ -83,9 +100,10 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '@/store/useAppStore'
 import { computeLayout } from '@/layout/LayoutEngine'
 import ImageControls from './ImageControls.vue'
+import ImageCropOverlay from './ImageCropOverlay.vue'
 import Icon from '@/components/Common/Icon.vue'
 import { toast } from '@/composables/useToast'
-import { createImageElements } from '@/core/models'
+import { createImageElements, type CropConfig } from '@/core/models'
 import { useI18n } from 'vue-i18n'
 
 const store = useAppStore()
@@ -97,6 +115,9 @@ const addZoneFileInput = ref<HTMLInputElement>() // 添加区域专用的文件�
 const targetIndex = ref<number>(-1) // 记录点击的目标位置
 const isAddZoneDragging = ref(false) // 添加区域的拖拽状态
 const dragOverZoneIndex = ref<number | null>(null) // 拖拽经过的空白单元格索引
+
+/** 裁剪状态 */
+const croppingImageId = ref<string | null>(null) // 当前正在裁剪的图片ID
 
 /** 延迟隐藏控件的计时器 */
 let hideTimer: ReturnType<typeof setTimeout> | null = null
@@ -121,6 +142,12 @@ const computedCells = computed(() => {
 
 /** 图片列表 */
 const images = computed(() => store.images)
+
+/** 正在裁剪的图片索引 */
+const croppingImageIndex = computed(() => {
+  if (!croppingImageId.value) return null
+  return images.value.findIndex(img => img && img !== null && img.id === croppingImageId.value)
+})
 
 /** 交互层样式（与画布尺寸精确匹配，缩放由父元素 canvas-wrapper 处理） */
 const layerStyle = computed(() => ({
@@ -229,6 +256,27 @@ function handleDelete(id: string) {
 /** 更改适应模式 */
 function handleChangeFitMode(id: string, mode: import('@/core/models').ImageFitMode) {
   store.setImageFitMode(id, mode)
+}
+
+/** 开始裁剪 */
+function handleStartCrop(id: string) {
+  croppingImageId.value = id
+  hoveredIndex.value = null // 隐藏控制按钮
+}
+
+/** 确认裁剪 */
+function handleCropConfirm(crop: CropConfig) {
+  if (croppingImageId.value) {
+    store.setCropConfig(croppingImageId.value, crop)
+    toast.success(t('interaction.cropSuccess'))
+  }
+  croppingImageId.value = null
+}
+
+/** 取消裁剪 */
+function handleCropCancel() {
+  croppingImageId.value = null
+  toast.info(t('interaction.cropCancelled'))
 }
 
 /** 处理点击空白位置 */
@@ -707,6 +755,17 @@ onUnmounted(() => {
 
 .drag-preview-enter-from,
 .drag-preview-leave-to {
+  opacity: 0;
+}
+
+/* 裁剪覆盖层淡入淡出动画 */
+.crop-fade-enter-active,
+.crop-fade-leave-active {
+  transition: opacity var(--duration-base) var(--ease-in-out);
+}
+
+.crop-fade-enter-from,
+.crop-fade-leave-to {
   opacity: 0;
 }
 </style>

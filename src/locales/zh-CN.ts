@@ -151,7 +151,14 @@ export default {
     flipHorizontalTooltip: '水平翻转',
     flipVerticalTooltip: '垂直翻转',
     rotateTooltip: '旋转 90°',
+    cropTooltip: '裁剪图片',
     deleteTooltip: '删除图片',
+    // 裁剪操作
+    cropConfirm: '确认裁剪',
+    cropCancel: '取消',
+    cropReset: '重置',
+    cropSuccess: '裁剪已应用',
+    cropCancelled: '已取消裁剪',
     // 点击上传
     clickOrDragAdd: '点击或拖拽添加图片',
     releaseToUpload: '松开鼠标上传',

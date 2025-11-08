@@ -151,7 +151,14 @@ export default {
     flipHorizontalTooltip: 'Flip Horizontal',
     flipVerticalTooltip: 'Flip Vertical',
     rotateTooltip: 'Rotate 90°',
+    cropTooltip: 'Crop Image',
     deleteTooltip: 'Delete Image',
+    // Crop operations
+    cropConfirm: 'Confirm Crop',
+    cropCancel: 'Cancel',
+    cropReset: 'Reset',
+    cropSuccess: 'Crop applied',
+    cropCancelled: 'Crop cancelled',
     // Click to upload
     clickOrDragAdd: 'Click or drag to add images',
     releaseToUpload: 'Release to upload',
